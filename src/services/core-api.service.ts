@@ -13,6 +13,7 @@ type TrpcCollection = {
     name: string;
     url: string;
     method: HttpMethod;
+    httpContent?: string;
     createdAt?: string;
     updatedAt?: string;
   }>;
@@ -31,6 +32,7 @@ function toClientEndpoint(endpoint: {
   name: string;
   url: string;
   method: HttpMethod;
+  httpContent?: string;
   createdAt?: string;
   updatedAt?: string;
 }): CollectionEndpoint {
@@ -40,6 +42,7 @@ function toClientEndpoint(endpoint: {
     method: endpoint.method,
     url: endpoint.url,
     timestamp: toTimestamp(endpoint.updatedAt ?? endpoint.createdAt),
+    httpContent: endpoint.httpContent,
   };
 }
 
@@ -106,5 +109,41 @@ export class CoreApiService {
   async deleteEndpoint(id: string) {
     const client = await this.createAuthedClient();
     await client.mutation("apiEndpoint.delete", { id });
+  }
+
+  async updateEndpointHttpContent(input: { id: string; httpContent: string }) {
+    const client = await this.createAuthedClient();
+
+    const candidates = [
+      "apiEndpoint.update",
+      "apiEndpoint.updateEndpoint",
+      "apiEndpoint.updateHttpContent",
+      "collection.updateEndpoint",
+    ] as const;
+
+    let lastError: unknown = null;
+    for (const path of candidates) {
+      try {
+        await client.mutation(path, input);
+        return;
+      } catch (error) {
+        lastError = error;
+        const message = error instanceof Error ? error.message : "";
+        const mightBeUnknownProcedure =
+          message.includes("No") ||
+          message.toLowerCase().includes("not found") ||
+          message.toLowerCase().includes("procedure");
+
+        if (mightBeUnknownProcedure) {
+          continue;
+        }
+
+        throw error;
+      }
+    }
+
+    throw lastError instanceof Error
+      ? lastError
+      : new Error("Failed to update endpoint httpContent");
   }
 }

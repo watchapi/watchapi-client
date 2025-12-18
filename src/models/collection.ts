@@ -6,6 +6,7 @@ export type CollectionEndpoint = {
   method: HttpMethod;
   url: string;
   timestamp: number;
+  httpContent?: string;
 };
 
 export type Collection = {

@@ -1,14 +1,25 @@
 import { RequestLike } from "../models/request";
 
-export function buildRequestDocument(request: RequestLike): string {
-  const createdAt = new Date(request.timestamp).toISOString();
+export function buildRequestDocument(
+  request: RequestLike & { name?: string },
+): string {
+  if (request.httpContent?.trim()) {
+    const content = request.httpContent.trimEnd() + "\n";
+    return content;
+  }
+
+  function safePathname(input: string) {
+    try {
+      return new URL(input).pathname;
+    } catch {
+      return input;
+    }
+  }
 
   return [
-    `### WatchAPI Request`,
+    `### ${request.method} ${safePathname(request.url)} - ${request.name}`,
     ``,
     `${request.method} ${request.url}`,
-    ``,
-    `# Created ${createdAt}`,
     ``,
   ].join("\n");
 }

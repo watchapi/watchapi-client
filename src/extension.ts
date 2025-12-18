@@ -7,13 +7,18 @@ import { ActivityTreeItem } from "./providers/activity-tree-item";
 import { CollectionsProvider } from "./providers/collections-provider";
 import { CollectionTreeItem } from "./providers/collection-tree-item";
 import { EndpointTreeItem } from "./providers/endpoint-tree-item";
-import { openSavedHttpFile } from "./services/editor.service";
+import {
+  inferHttpFilename,
+  openSavedHttpFile,
+} from "./services/editor.service";
 import { buildRequestDocument } from "./documents/request-document";
 import {
   ensureGuestLogin,
   upgradeGuestWithCredentials,
 } from "./services/auth.service";
 import { CoreApiService } from "./services/core-api.service";
+import { RequestLinkStore } from "./storage/request-link-store";
+import { extractEndpointIdFromHttpDocument } from "./utils/watchapi-request-metadata";
 
 export function activate(context: vscode.ExtensionContext) {
   console.log(
@@ -26,6 +31,7 @@ export function activate(context: vscode.ExtensionContext) {
   const coreApi = new CoreApiService(context);
   const collectionsService = coreApi;
   const collectionsProvider = new CollectionsProvider(collectionsService);
+  const requestLinks = new RequestLinkStore(context);
 
   context.subscriptions.push(
     vscode.window.registerTreeDataProvider(
@@ -149,7 +155,17 @@ export function activate(context: vscode.ExtensionContext) {
         }
 
         const content = buildRequestDocument(endpoint);
-        await openSavedHttpFile(content);
+        const doc = await openSavedHttpFile(
+          content,
+          inferHttpFilename({
+            name: endpoint.name,
+            method: endpoint.method,
+            url: endpoint.url,
+          }),
+        );
+        if (doc) {
+          await requestLinks.linkEndpoint(doc.uri, endpoint.id);
+        }
       },
     ),
   );
@@ -279,9 +295,53 @@ export function activate(context: vscode.ExtensionContext) {
         }
 
         const content = buildRequestDocument(activity);
-        await openSavedHttpFile(content);
+        await openSavedHttpFile(
+          content,
+          inferHttpFilename({
+            method: activity.method,
+            url: activity.url,
+          }),
+        );
       },
     ),
+  );
+
+  context.subscriptions.push(
+    vscode.workspace.onDidSaveTextDocument(async (doc) => {
+      const looksLikeHttp =
+        doc.languageId === "http" ||
+        doc.uri.path.toLowerCase().endsWith(".http") ||
+        doc.fileName.toLowerCase().endsWith(".http");
+      if (!looksLikeHttp) {
+        return;
+      }
+
+      const text = doc.getText();
+      const endpointId =
+        extractEndpointIdFromHttpDocument(text) ??
+        requestLinks.getEndpointId(doc.uri);
+      if (!endpointId) {
+        return;
+      }
+
+      try {
+        await coreApi.updateEndpointHttpContent({
+          id: endpointId,
+          httpContent: text,
+        });
+        void vscode.window.setStatusBarMessage(
+          "WatchAPI: synced request",
+          1500,
+        );
+      } catch (error) {
+        console.error(error);
+        vscode.window.showErrorMessage(
+          error instanceof Error
+            ? `WatchAPI sync failed: ${error.message}`
+            : "WatchAPI sync failed",
+        );
+      }
+    }),
   );
 
   context.subscriptions.push(

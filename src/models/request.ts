@@ -11,4 +11,5 @@ export type RequestLike = {
   method: HttpMethod;
   url: string;
   timestamp: number;
+  httpContent?: string;
 };
