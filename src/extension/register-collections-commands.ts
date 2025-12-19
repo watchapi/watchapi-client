@@ -256,4 +256,24 @@ export function registerCollectionsCommands(
       }
     }),
   );
+
+  context.subscriptions.push(
+    vscode.commands.registerCommand("watchapi.collections.more", async () => {
+      const picked = await vscode.window.showQuickPick(
+        [
+          {
+            label: "Login",
+            description: "Open https://watchapi.dev/login",
+            command: "watchapi.auth.openWebLogin",
+          },
+        ],
+        { placeHolder: "WatchAPI" },
+      );
+      if (!picked) {
+        return;
+      }
+
+      await vscode.commands.executeCommand(picked.command);
+    }),
+  );
 }

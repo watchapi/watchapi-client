@@ -1,18 +1,29 @@
 {
   "name": "watchapi-client",
-  "publisher": "watchapi",
-  "displayName": "watchapi-client",
-  "description": "Rest client for api testing",
+  "publisher": "WatchAPI",
+  "displayName": "WatchAPI Client",
+  "description": "REST client for testing and managing API endpoints from code",
   "version": "0.0.1",
   "engines": {
-    "vscode": "^1.107.0"
+    "vscode": "^1.90.0"
   },
   "categories": [
-    "Other"
+    "Other",
+    "Testing",
+    "Programming Languages"
   ],
+  "keywords": [
+    "api",
+    "rest",
+    "http",
+    "api-testing",
+    "rest-client",
+    "openapi",
+    "developer-tools"
+  ],
+  "preview": true,
   "activationEvents": [
     "onView:watchapi.collections",
-    "onCommand:watchapi.newRequest",
     "onCommand:watchapi.auth.login",
     "onCommand:watchapi.collections.create",
     "onCommand:watchapi.collections.addEndpoint",
@@ -21,7 +32,8 @@
     "onCommand:watchapi.collections.deleteEndpoint",
     "onCommand:watchapi.collections.deleteSelected",
     "onCommand:watchapi.collections.renameCollection",
-    "onCommand:watchapi.collections.refresh"
+    "onCommand:watchapi.collections.refresh",
+    "onCommand:watchapi.httpClient.promptInstall"
   ],
   "main": "./dist/extension.js",
   "contributes": {
@@ -55,6 +67,20 @@
         "title": "WatchAPI: Login"
       },
       {
+        "command": "watchapi.auth.openWebLogin",
+        "title": "WatchAPI: Open Login Page"
+      },
+      {
+        "command": "watchapi.collections.more",
+        "title": "WatchAPI: More",
+        "icon": "$(kebab-vertical)"
+      },
+      {
+        "command": "watchapi.httpClient.promptInstall",
+        "title": "WatchAPI: Install REST Client",
+        "icon": "$(warning)"
+      },
+      {
         "command": "watchapi.collections.create",
         "title": "WatchAPI: New Collection",
         "icon": "$(add)"
@@ -75,8 +101,7 @@
       },
       {
         "command": "watchapi.collections.renameCollection",
-        "title": "WatchAPI: Rename Collection",
-        "icon": "$(edit)"
+        "title": "WatchAPI: Rename Collection"
       },
       {
         "command": "watchapi.collections.deleteCollection",
@@ -112,22 +137,33 @@
         }
       ]
     },
+    "viewsWelcome": [
+      {
+        "view": "watchapi.collections",
+        "contents": "No collections yet.\n\n[$(add) New Collection](command:watchapi.collections.create)"
+      }
+    ],
     "menus": {
       "view/title": [
         {
+          "command": "watchapi.httpClient.promptInstall",
+          "when": "view == watchapi.collections && watchapi.httpClientMissing",
+          "group": "navigation@0"
+        },
+        {
           "command": "watchapi.collections.create",
           "when": "view == watchapi.collections",
-          "group": "navigation"
+          "group": "navigation@1"
         },
         {
           "command": "watchapi.collections.refresh",
           "when": "view == watchapi.collections",
-          "group": "navigation"
+          "group": "navigation@2"
         },
         {
-          "command": "watchapi.newRequest",
+          "command": "watchapi.collections.more",
           "when": "view == watchapi.collections",
-          "group": "navigation"
+          "group": "navigation@3"
         }
       ],
       "view/item/context": [
@@ -139,7 +175,7 @@
         {
           "command": "watchapi.collections.renameCollection",
           "when": "view == watchapi.collections && viewItem == collectionItem",
-          "group": "inline"
+          "group": "2_edit"
         },
         {
           "command": "watchapi.collections.deleteCollection",
@@ -154,6 +190,11 @@
       ]
     },
     "keybindings": [
+      {
+        "command": "watchapi.collections.renameCollection",
+        "key": "f2",
+        "when": "focusedView == watchapi.collections && viewItem == collectionItem && listFocus"
+      },
       {
         "command": "watchapi.collections.deleteSelected",
         "key": "delete",
@@ -184,15 +225,15 @@
     "@trpc/client": "11.6.0"
   },
   "devDependencies": {
-    "@types/vscode": "^1.107.0",
     "@types/mocha": "^10.0.10",
     "@types/node": "22.x",
-    "typescript-eslint": "^8.48.1",
-    "eslint": "^9.39.1",
+    "@types/vscode": "^1.90.0",
+    "@vscode/test-cli": "^0.0.12",
+    "@vscode/test-electron": "^2.5.2",
     "esbuild": "^0.27.1",
+    "eslint": "^9.39.1",
     "npm-run-all": "^4.1.5",
     "typescript": "^5.9.3",
-    "@vscode/test-cli": "^0.0.12",
-    "@vscode/test-electron": "^2.5.2"
+    "typescript-eslint": "^8.48.1"
   }
 }

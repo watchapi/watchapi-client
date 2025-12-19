@@ -53,6 +53,8 @@ export function registerAuthCommands(context: vscode.ExtensionContext) {
         );
       }
     }),
+    vscode.commands.registerCommand("watchapi.auth.openWebLogin", async () => {
+      await vscode.env.openExternal(vscode.Uri.parse("https://watchapi.dev/login"));
+    }),
   );
 }
-

@@ -6,6 +6,7 @@ import { RequestLinkStore } from "../storage/request-link-store";
 import { registerAuthCommands } from "./register-auth-commands";
 import { registerCollectionsCommands } from "./register-collections-commands";
 import { registerCollectionsTreeView } from "./register-collections-tree-view";
+import { registerHttpClientReminder } from "./register-http-client-reminder";
 import { registerHttpSyncOnSave } from "./register-http-sync-on-save";
 import { registerSettingsCommands } from "./register-settings-commands";
 
@@ -18,6 +19,7 @@ export function activate(context: vscode.ExtensionContext) {
   const collectionsProvider = new CollectionsProvider(coreApi);
   const requestLinks = new RequestLinkStore(context);
 
+  registerHttpClientReminder(context);
   const treeView = registerCollectionsTreeView(context, collectionsProvider);
   registerCollectionsCommands(context, {
     collectionsProvider,
