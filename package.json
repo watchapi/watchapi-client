@@ -214,7 +214,7 @@
   "scripts": {
     "vscode:package": "pnpm run package",
     "vscode:publish": "pnpm exec vsce publish --no-dependencies",
-    "package": "pnpm exec vsce package --no-dependencies",
+    "package": "pnpm exec vsce package --out dist/ --no-dependencies",
     "compile": "pnpm run check-types && pnpm run lint && node esbuild.js",
     "watch": "npm-run-all -p watch:*",
     "watch:esbuild": "node esbuild.js --watch",
