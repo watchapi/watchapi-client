@@ -4,9 +4,12 @@ import { VirtualRequestFileSystemProvider } from "../providers/virtual-request-f
 function sanitizeFilenamePart(input: string) {
   return input
     .trim()
-    .replace(/[<>:"/\\|?*\u0000-\u001F]/g, "")
+    .replace(/[<>:"\\|?*\u0000-\u001F]/g, "")
+    .replace(/[\\/]/g, "-")
     .replace(/\s+/g, "-")
     .replace(/-+/g, "-")
+    .replace(/^-+/, "")
+    .replace(/-+$/, "")
     .replace(/^\.+/, "")
     .replace(/\.+$/, "")
     .slice(0, 120);
@@ -84,14 +87,23 @@ export async function openWatchapiHttpFile(input: {
 }
 
 export function inferHttpFilename(input: { name?: string; method?: string; url?: string }) {
-  const base = [
-    input.method?.trim(),
-    input.name?.trim(),
-  ]
-    .filter(Boolean)
-    .join(" ")
-    .trim() ||
-    [input.method?.trim(), input.url?.trim()].filter(Boolean).join(" ") ||
-    "request";
-  return toHttpFilename(base);
+  const method = input.method?.trim();
+  const name = input.name?.trim();
+
+  if (name) {
+    const methodPattern = method ? new RegExp(`^${method}\\b[:\\s-]*`, "i") : null;
+    const startsWithMethod = Boolean(methodPattern?.test(name));
+    const nameWithoutMethod = methodPattern
+      ? name.replace(methodPattern, "").trim()
+      : name;
+    const base =
+      (startsWithMethod ? [nameWithoutMethod] : [method, nameWithoutMethod])
+        .filter(Boolean)
+        .join(" ")
+        .trim() || "request";
+    return toHttpFilename(base);
+  }
+
+  const fallback = input.url?.trim() || method || "request";
+  return toHttpFilename(fallback);
 }

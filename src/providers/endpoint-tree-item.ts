@@ -31,7 +31,13 @@ export class EndpointTreeItem extends vscode.TreeItem {
 
 function endpointLabel(endpoint: CollectionEndpoint): string {
   const name = endpoint.name?.trim();
-  return name ? name : displayUrl(endpoint.url);
+  if (name) {
+    const methodPattern = new RegExp(`^${endpoint.method}\\b[:\\s-]*`, "i");
+    const withoutMethod = name.replace(methodPattern, "").trim();
+    return withoutMethod || name;
+  }
+
+  return displayUrl(endpoint.url);
 }
 
 function methodIconId(): string {

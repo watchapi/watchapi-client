@@ -33,7 +33,18 @@ suite("Editor Service", () => {
         method: "POST",
         url: "https://example.com/users?role=admin",
       }),
-      "POST-httpsexample.comusersrole=admin.http",
+      "https-example.com-usersrole=admin.http",
+    );
+  });
+
+  test("drops duplicate method prefix and keeps slashes as hyphens", () => {
+    assert.strictEqual(
+      inferHttpFilename({
+        name: "POST /api/stripe/webhook",
+        method: "POST",
+        url: "https://example.com/api/stripe/webhook",
+      }),
+      "api-stripe-webhook.http",
     );
   });
 });
