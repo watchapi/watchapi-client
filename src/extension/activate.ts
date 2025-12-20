@@ -10,6 +10,7 @@ import {
 import { registerAuthCommands } from "./register-auth-commands";
 import { registerCollectionsCommands } from "./register-collections-commands";
 import { registerCollectionsTreeView } from "./register-collections-tree-view";
+import { registerFrameworkUploads } from "./register-framework-uploads";
 import { registerHttpClientReminder } from "./register-http-client-reminder";
 import { registerHttpSyncOnSave } from "./register-http-sync-on-save";
 import { registerSettingsCommands } from "./register-settings-commands";
@@ -41,6 +42,7 @@ export function activate(context: vscode.ExtensionContext) {
   registerHttpSyncOnSave(context, { coreApi, requestLinks });
   registerSettingsCommands(context);
   registerAuthCommands(context);
+  registerFrameworkUploads(context, { collectionsProvider, coreApi });
 
   void ensureGuestLogin(context).catch((error) => {
     console.error("Guest login failed:", error);

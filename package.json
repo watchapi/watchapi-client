@@ -32,6 +32,7 @@
     "onCommand:watchapi.collections.deleteCollection",
     "onCommand:watchapi.collections.deleteEndpoint",
     "onCommand:watchapi.collections.deleteSelected",
+    "onCommand:watchapi.collections.uploadDetectedApis",
     "onCommand:watchapi.collections.renameCollection",
     "onCommand:watchapi.collections.refresh",
     "onCommand:watchapi.httpClient.promptInstall"
@@ -88,6 +89,11 @@
         "command": "watchapi.collections.create",
         "title": "WatchAPI: New Collection",
         "icon": "$(add)"
+      },
+      {
+        "command": "watchapi.collections.uploadDetectedApis",
+        "title": "WatchAPI: Upload APIs",
+        "icon": "$(cloud-upload)"
       },
       {
         "command": "watchapi.collections.refresh",
@@ -160,14 +166,19 @@
           "group": "navigation@1"
         },
         {
+          "command": "watchapi.collections.uploadDetectedApis",
+          "when": "view == watchapi.collections && watchapi.frameworkUploadAvailable",
+          "group": "navigation@2"
+        },
+        {
           "command": "watchapi.collections.refresh",
           "when": "view == watchapi.collections",
-          "group": "navigation@2"
+          "group": "navigation@3"
         },
         {
           "command": "watchapi.collections.more",
           "when": "view == watchapi.collections",
-          "group": "navigation@3"
+          "group": "navigation@4"
         }
       ],
       "view/item/context": [
@@ -227,7 +238,8 @@
     "test": "vscode-test"
   },
   "dependencies": {
-    "@trpc/client": "11.6.0"
+    "@trpc/client": "11.6.0",
+    "@watchapi/cli": "^0.2.17"
   },
   "devDependencies": {
     "@types/mocha": "^10.0.10",
