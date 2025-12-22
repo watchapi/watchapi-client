@@ -4,6 +4,8 @@ import { HttpMethod } from "../models/request";
 import { ensureGuestLogin, getOrCreateInstallId } from "./auth.service";
 import { createApiClientFromConfig } from "./trpc.service";
 import { parseHttpRequestDocument } from "../utils/parse-http-request";
+import { normalizeHeaders } from "../utils/normalize-headers";
+import { loadRestClientEnvEntries } from "../utils/rest-client-env";
 
 type TrpcCollection = {
   id: string;
@@ -14,7 +16,8 @@ type TrpcCollection = {
     name: string;
     url: string;
     method: HttpMethod;
-    httpContent?: string;
+    headers?: Record<string, string> | string | null;
+    body?: string | null;
     createdAt?: string;
     updatedAt?: string;
   }>;
@@ -33,7 +36,8 @@ function toClientEndpoint(endpoint: {
   name: string;
   url: string;
   method: HttpMethod;
-  httpContent?: string;
+  headers?: Record<string, string> | string | null;
+  body?: string | null;
   createdAt?: string;
   updatedAt?: string;
 }): CollectionEndpoint {
@@ -42,8 +46,9 @@ function toClientEndpoint(endpoint: {
     name: endpoint.name,
     method: endpoint.method,
     url: endpoint.url,
+    headers: normalizeHeaders(endpoint.headers),
+    body: endpoint.body ?? null,
     timestamp: toTimestamp(endpoint.updatedAt ?? endpoint.createdAt),
-    httpContent: endpoint.httpContent,
   };
 }
 
@@ -70,6 +75,7 @@ export class CoreApiService {
   }
 
   async pullCollections(): Promise<Collection[]> {
+    await this.syncRestClientEnvironment();
     const client = await this.createAuthedClient();
     const result = await client.query<TrpcCollection[]>(
       "collection.getMyCollections",
@@ -112,13 +118,15 @@ export class CoreApiService {
     await client.mutation("apiEndpoint.delete", { id });
   }
 
-  async updateEndpointHttpContent(input: { id: string; httpContent: string }) {
+  async updateEndpointFromHttpDocument(input: {
+    id: string;
+    httpContent: string;
+  }) {
     const client = await this.createAuthedClient();
     const parsed = parseHttpRequestDocument(input.httpContent);
 
     const payload: Record<string, unknown> = {
       id: input.id,
-      httpContent: input.httpContent,
     };
 
     if (parsed) {
@@ -131,12 +139,11 @@ export class CoreApiService {
       payload.body = parsed.body ?? "";
     }
 
-    const candidates = [
-      "apiEndpoint.update",
-      "apiEndpoint.updateEndpoint",
-      "apiEndpoint.updateHttpContent",
-      "collection.updateEndpoint",
-    ] as const;
+    if (!parsed) {
+      throw new Error("Unable to parse HTTP request document");
+    }
+
+    const candidates = ["apiEndpoint.update", "collection.updateEndpoint"] as const;
 
     let lastError: unknown = null;
     for (const path of candidates) {
@@ -161,7 +168,7 @@ export class CoreApiService {
 
     throw lastError instanceof Error
       ? lastError
-      : new Error("Failed to update endpoint httpContent");
+      : new Error("Failed to update endpoint from document");
   }
 
   async findEndpointById(
@@ -177,5 +184,19 @@ export class CoreApiService {
       }
     }
     return undefined;
+  }
+
+  async syncRestClientEnvironment(envName = "prod") {
+    const variables = await loadRestClientEnvEntries(envName);
+    if (variables.length === 0) {
+      return;
+    }
+
+    const client = await this.createAuthedClient();
+    await client.mutation("environment.createEnvironment", {
+      name: envName,
+      variables,
+      isDefault: true,
+    });
   }
 }

@@ -33,7 +33,7 @@ export function registerHttpSyncOnSave(
       }
 
       try {
-        await coreApi.updateEndpointHttpContent({
+        await coreApi.updateEndpointFromHttpDocument({
           id: endpointId,
           httpContent: text,
         });

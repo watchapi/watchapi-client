@@ -5,8 +5,9 @@ export type CollectionEndpoint = {
   name?: string;
   method: HttpMethod;
   url: string;
+  headers?: Record<string, string> | null;
+  body?: string | null;
   timestamp: number;
-  httpContent?: string;
 };
 
 export type Collection = {

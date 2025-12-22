@@ -106,7 +106,7 @@ export class VirtualRequestFileSystemProvider
     }
 
     try {
-      await this.coreApi.updateEndpointHttpContent({
+      await this.coreApi.updateEndpointFromHttpDocument({
         id: endpointId,
         httpContent: Buffer.from(content).toString("utf8"),
       });
