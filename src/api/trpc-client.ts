@@ -17,19 +17,12 @@ type TrpcClient = {
  * This will be implemented by the auth module
  */
 let getAuthToken: () => Promise<string | undefined> = async () => undefined;
-let getInstallId: () => Promise<string | undefined> = async () => undefined;
 let refreshTokenHandler: () => Promise<boolean> = async () => false;
 
 export function setAuthTokenProvider(
   provider: () => Promise<string | undefined>,
 ): void {
   getAuthToken = provider;
-}
-
-export function setInstallIdProvider(
-  provider: () => Promise<string | undefined>,
-): void {
-  getInstallId = provider;
 }
 
 export function setRefreshTokenHandler(
@@ -53,10 +46,8 @@ export class ApiClient {
           url,
           async headers() {
             const token = await getAuthToken();
-            const installId = await getInstallId();
             return {
               ...(token && { authorization: `Bearer ${token}` }),
-              ...(installId && { "x-watchapi-install-id": installId }),
             };
           },
           async fetch(url, options) {
@@ -74,14 +65,12 @@ export class ApiClient {
                   // Retry request with new token
                   logger.info("Token refreshed, retrying request");
                   const newToken = await getAuthToken();
-                  const installId = await getInstallId();
 
                   const retryOptions = {
                     ...options,
                     headers: {
                       ...options?.headers,
                       ...(newToken && { authorization: `Bearer ${newToken}` }),
-                      ...(installId && { "x-watchapi-install-id": installId }),
                     },
                   };
 

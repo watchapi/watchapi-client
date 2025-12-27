@@ -4,11 +4,9 @@
  */
 
 import * as vscode from "vscode";
-import { randomUUID } from "crypto";
 import {
   trpc,
   setAuthTokenProvider,
-  setInstallIdProvider,
   setRefreshTokenHandler,
 } from "@/api/trpc-client";
 import { STORAGE_KEYS } from "@/shared/constants";
@@ -30,7 +28,6 @@ export class AuthService {
 
     // Provide token to tRPC client
     setAuthTokenProvider(() => this.getToken());
-    setInstallIdProvider(() => this.getOrCreateInstallId());
     setRefreshTokenHandler(() => this.refreshAccessToken());
   }
 
@@ -72,14 +69,8 @@ export class AuthService {
    * Opens browser for authentication
    */
   async login(): Promise<void> {
-    const installId = await this.getOrCreateInstallId();
-
-    const payload = Buffer.from(
-      JSON.stringify({ installId, source: "vscode-extension" }),
-    ).toString("base64url");
-
     const loginUrl = new URL("/login", getDashboardUrl());
-    loginUrl.searchParams.set("payload", payload);
+    loginUrl.searchParams.set("source", "vscode-extension");
 
     await vscode.env.openExternal(vscode.Uri.parse(loginUrl.toString()));
   }
@@ -196,19 +187,6 @@ export class AuthService {
    */
   async getToken(): Promise<string | undefined> {
     return this.context.secrets.get(STORAGE_KEYS.JWT_TOKEN);
-  }
-
-  private async getOrCreateInstallId(): Promise<string> {
-    const existing = this.context.globalState.get<string>(
-      STORAGE_KEYS.INSTALL_ID,
-    );
-    if (existing) {
-      return existing;
-    }
-
-    const installId = randomUUID();
-    await this.context.globalState.update(STORAGE_KEYS.INSTALL_ID, installId);
-    return installId;
   }
 
   /**

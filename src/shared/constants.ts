@@ -32,7 +32,6 @@ export const STORAGE_KEYS = {
   JWT_TOKEN: "watchapi.jwt_token",
   REFRESH_TOKEN: "watchapi.refresh_token",
   USER_INFO: "watchapi.user_info",
-  INSTALL_ID: "watchapi.install_id",
   SELECTED_ORG_ID: "watchapi.selected_org_id",
   CACHE_PREFIX: "watchapi.cache",
   LAST_SYNC: "watchapi.last_sync",
