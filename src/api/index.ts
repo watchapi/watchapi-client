@@ -1,2 +1,6 @@
-export { ApiClient } from "./api-client";
-export type { ApiClientOptions, TrpcClient } from "./api-client";
+/**
+ * API module barrel export
+ */
+
+export * from './schemas';
+export { trpc, ApiClient, setAuthTokenProvider } from './trpc-client';

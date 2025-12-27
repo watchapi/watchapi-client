@@ -1,10 +1,10 @@
 {
   "name": "watchapi-client",
-  "publisher": "WatchAPI",
-  "displayName": "WatchAPI Client",
-  "description": "REST client for testing and managing API endpoints from code",
-  "version": "0.0.6",
+  "displayName": "WatchAPI",
+  "description": "Manage and sync API endpoints directly from VS Code to WatchAPI cloud",
+  "version": "0.1.2",
   "icon": "assets/marketplace-logo.png",
+  "publisher": "watchapi",
   "engines": {
     "vscode": "^1.90.0"
   },
@@ -23,119 +23,156 @@
     "developer-tools"
   ],
   "preview": true,
+  "repository": {
+    "url": "https://github.com/watchapi/watchapi-client"
+  },
   "activationEvents": [
-    "onView:watchapi.collections",
-    "onCommand:watchapi.auth.login",
-    "onCommand:watchapi.collections.create",
-    "onCommand:watchapi.collections.addEndpoint",
-    "onCommand:watchapi.collections.openEndpoint",
-    "onCommand:watchapi.collections.deleteCollection",
-    "onCommand:watchapi.collections.deleteEndpoint",
-    "onCommand:watchapi.collections.deleteSelected",
-    "onCommand:watchapi.collections.uploadDetectedApis",
-    "onCommand:watchapi.collections.renameCollection",
-    "onCommand:watchapi.collections.refresh",
-    "onCommand:watchapi.httpClient.promptInstall"
+    "onStartupFinished"
   ],
   "main": "./dist/extension.js",
-  "repository": {
-    "url": "https://github.com/watchapi/watchapi"
-  },
-  "contributes": {
-    "configuration": {
-      "title": "WatchAPI Client",
-      "properties": {
-        "watchapi.apiUrl": {
-          "type": "string",
-          "default": "https://watchapi.dev",
-          "description": "Base URL for the WatchAPI server (tRPC endpoint is /api/trpc)."
-        },
-        "watchapi.apiToken": {
-          "type": "string",
-          "default": "",
-          "description": "Bearer token used for authenticated WatchAPI requests."
-        },
-        "watchapi.organizationId": {
-          "type": "string",
-          "default": "",
-          "description": "Optional organization ID to send as x-organization-id."
-        }
-      }
+  "keybindings": [
+    {
+      "command": "watchapi.deleteEndpoint",
+      "mac": "cmd+backspace",
+      "key": "delete",
+      "when": "view == watchapi.collections && viewItem == endpoint",
+      "description": "Delete the selected API endpoint"
     },
+    {
+      "command": "watchapi.deleteCollection",
+      "mac": "cmd+backspace",
+      "key": "delete",
+      "when": "view == watchapi.collections && viewItem == collection",
+      "description": "Delete the selected API collection"
+    }
+  ],
+  "contributes": {
+    "uriHandlers": [
+      {
+        "id": "watchapi.watchapi-client"
+      }
+    ],
     "commands": [
       {
-        "command": "watchapi-client.helloWorld",
-        "title": "Hello World"
-      },
-      {
-        "command": "watchapi.auth.login",
-        "title": "WatchAPI: Login"
-      },
-      {
-        "command": "watchapi.auth.openWebLogin",
-        "title": "WatchAPI: Open Login Page"
-      },
-      {
-        "command": "watchapi.collections.more",
-        "title": "WatchAPI: More",
-        "icon": "$(kebab-vertical)"
-      },
-      {
-        "command": "watchapi.httpClient.promptInstall",
-        "title": "WatchAPI: Install REST Client",
-        "icon": "$(warning)"
-      },
-      {
-        "command": "watchapi.collections.create",
-        "title": "WatchAPI: New Collection",
-        "icon": "$(add)"
-      },
-      {
-        "command": "watchapi.collections.uploadDetectedApis",
-        "title": "WatchAPI: Upload APIs",
-        "icon": "$(cloud-upload)"
-      },
-      {
-        "command": "watchapi.collections.refresh",
+        "command": "watchapi.refresh",
         "title": "WatchAPI: Refresh Collections",
         "icon": "$(refresh)"
       },
       {
-        "command": "watchapi.collections.addEndpoint",
-        "title": "WatchAPI: New Endpoint",
+        "command": "watchapi.focus",
+        "title": "WatchAPI: Focus Collection View"
+      },
+      {
+        "command": "watchapi.openDashboard",
+        "title": "WatchAPI: Open Dashboard",
+        "icon": "$(globe)"
+      },
+      {
+        "command": "watchapi.addCollection",
+        "title": "WatchAPI: Add Collection",
         "icon": "$(add)"
       },
       {
-        "command": "watchapi.collections.openEndpoint",
-        "title": "WatchAPI: Open Endpoint"
+        "command": "watchapi.deleteCollection",
+        "title": "Delete Collection(s)",
+        "icon": "$(bin)",
+        "enablement": "view == watchapi.collections"
       },
       {
-        "command": "watchapi.collections.renameCollection",
-        "title": "WatchAPI: Rename Collection"
+        "command": "watchapi.addEndpoint",
+        "title": "Add Endpoint",
+        "icon": "$(add)",
+        "enablement": "view == watchapi.collections"
       },
       {
-        "command": "watchapi.collections.deleteCollection",
-        "title": "WatchAPI: Delete Collection"
+        "command": "watchapi.uploadEndpoints",
+        "title": "WatchAPI: Upload Endpoints",
+        "icon": "$(cloud-upload)"
       },
       {
-        "command": "watchapi.collections.deleteEndpoint",
-        "title": "WatchAPI: Delete Endpoint"
+        "command": "watchapi.deleteEndpoint",
+        "title": "Delete Endpoint(s)",
+        "enablement": "view == watchapi.collections"
       },
       {
-        "command": "watchapi.collections.deleteSelected",
-        "title": "WatchAPI: Delete Selected"
+        "command": "watchapi.login",
+        "title": "Login",
+        "icon": "$(account)"
       },
       {
-        "command": "watchapi.openSettings",
-        "title": "WatchAPI: Open Settings"
+        "command": "watchapi.logout",
+        "title": "Logout",
+        "icon": "$(sign-out)"
+      },
+      {
+        "command": "watchapi.switchOrganization",
+        "title": "WatchAPI: Select Organization",
+        "icon": "$(organization)"
       }
     ],
+    "viewsWelcome": [
+      {
+        "view": "watchapi.collections",
+        "contents": "No collections yet.\n\n[$(add) New Collection](command:watchapi.addCollection)"
+      }
+    ],
+    "menus": {
+      "view/title": [
+        {
+          "command": "watchapi.login",
+          "when": "view == watchapi.collections && !watchapi.loggedIn",
+          "group": "menu@1"
+        },
+        {
+          "command": "watchapi.logout",
+          "when": "view == watchapi.collections && watchapi.loggedIn",
+          "group": "menu@1"
+        },
+        {
+          "command": "watchapi.switchOrganization",
+          "when": "view == watchapi.collections && watchapi.loggedIn",
+          "group": "menu@2"
+        },
+        {
+          "command": "watchapi.addCollection",
+          "when": "view == watchapi.collections",
+          "group": "navigation@1"
+        },
+        {
+          "command": "watchapi.uploadEndpoints",
+          "when": "view == watchapi.collections",
+          "group": "navigation@2"
+        },
+        {
+          "command": "watchapi.refresh",
+          "when": "view == watchapi.collections",
+          "group": "navigation@3"
+        }
+      ],
+      "view/item/context": [
+        {
+          "command": "watchapi.deleteCollection",
+          "when": "view == watchapi.collections && viewItem == collection",
+          "group": "navigation@99"
+        },
+        {
+          "command": "watchapi.addEndpoint",
+          "when": "view == watchapi.collections && viewItem == collection",
+          "group": "inline"
+        },
+        {
+          "command": "watchapi.deleteEndpoint",
+          "when": "view == watchapi.collections && viewItem == endpoint",
+          "group": "navigation@99"
+        }
+      ]
+    },
     "viewsContainers": {
       "activitybar": [
         {
           "id": "watchapi",
           "title": "WatchAPI Client",
-          "icon": "assets/watchapi-icon.png"
+          "icon": "assets/icon.png"
         }
       ]
     },
@@ -147,89 +184,33 @@
         }
       ]
     },
-    "viewsWelcome": [
-      {
-        "view": "watchapi.collections",
-        "contents": "No collections yet.\n\n[$(add) New Collection](command:watchapi.collections.create)"
-      }
-    ],
-    "menus": {
-      "view/title": [
-        {
-          "command": "watchapi.httpClient.promptInstall",
-          "when": "view == watchapi.collections && watchapi.httpClientMissing",
-          "group": "navigation@0"
+    "configuration": {
+      "title": "WatchAPI",
+      "properties": {
+        "watchapi.apiUrl": {
+          "type": "string",
+          "default": "https://watchapi.com",
+          "markdownDescription": "WatchAPI backend URL. Change this if you're running a self-hosted instance.",
+          "order": 1
         },
-        {
-          "command": "watchapi.collections.create",
-          "when": "view == watchapi.collections",
-          "group": "navigation@1"
-        },
-        {
-          "command": "watchapi.collections.uploadDetectedApis",
-          "when": "view == watchapi.collections && watchapi.frameworkUploadAvailable",
-          "group": "navigation@2"
-        },
-        {
-          "command": "watchapi.collections.refresh",
-          "when": "view == watchapi.collections",
-          "group": "navigation@3"
-        },
-        {
-          "command": "watchapi.collections.more",
-          "when": "view == watchapi.collections",
-          "group": "navigation@4"
+        "watchapi.dashboardUrl": {
+          "type": "string",
+          "default": "https://watchapi.com",
+          "markdownDescription": "WatchAPI dashboard URL for opening in browser.",
+          "order": 2
         }
-      ],
-      "view/item/context": [
-        {
-          "command": "watchapi.collections.addEndpoint",
-          "when": "view == watchapi.collections && viewItem == collectionItem",
-          "group": "inline"
-        },
-        {
-          "command": "watchapi.collections.renameCollection",
-          "when": "view == watchapi.collections && viewItem == collectionItem",
-          "group": "2_edit"
-        },
-        {
-          "command": "watchapi.collections.deleteCollection",
-          "when": "view == watchapi.collections && viewItem == collectionItem",
-          "group": "3_delete"
-        },
-        {
-          "command": "watchapi.collections.deleteEndpoint",
-          "when": "view == watchapi.collections && viewItem == endpointItem",
-          "group": "3_delete"
-        }
-      ]
-    },
-    "keybindings": [
-      {
-        "command": "watchapi.collections.renameCollection",
-        "key": "f2",
-        "when": "focusedView == watchapi.collections && viewItem == collectionItem && listFocus"
-      },
-      {
-        "command": "watchapi.collections.deleteSelected",
-        "key": "delete",
-        "when": "focusedView == watchapi.collections && listFocus"
-      },
-      {
-        "command": "watchapi.collections.deleteSelected",
-        "key": "backspace",
-        "when": "focusedView == watchapi.collections && listFocus"
       }
-    ]
+    }
   },
   "scripts": {
     "vscode:package": "pnpm run package",
     "vscode:publish": "pnpm exec vsce publish --no-dependencies",
-    "package": "pnpm exec vsce package --out dist/ --no-dependencies",
+    "vscode:prepublish": "pnpm run package",
     "compile": "pnpm run check-types && pnpm run lint && node esbuild.js",
     "watch": "npm-run-all -p watch:*",
     "watch:esbuild": "node esbuild.js --watch",
     "watch:tsc": "tsc --noEmit --watch --project tsconfig.json",
+    "package": "pnpm run check-types && pnpm run lint && node esbuild.js --production",
     "compile-tests": "tsc -p . --outDir out",
     "watch-tests": "tsc -p . -w --outDir out",
     "pretest": "pnpm run compile-tests && pnpm run compile && pnpm run lint",
@@ -238,19 +219,23 @@
     "test": "vscode-test"
   },
   "dependencies": {
-    "@trpc/client": "11.6.0",
-    "@watchapi/cli": "^0.2.17"
+    "@trpc/client": "^11.0.0",
+    "@vscode/test-cli": "^0.0.12",
+    "zod": "^3.22.4"
   },
   "devDependencies": {
-    "@types/mocha": "^10.0.10",
     "@types/node": "22.x",
     "@types/vscode": "^1.90.0",
-    "@vscode/test-cli": "^0.0.12",
-    "@vscode/test-electron": "^2.5.2",
-    "esbuild": "^0.27.1",
+    "@vitest/ui": "^2.0.0",
     "eslint": "^9.39.1",
     "npm-run-all": "^4.1.5",
+    "ts-loader": "^9.5.4",
+    "tsup": "^8.5.0",
     "typescript": "^5.9.3",
-    "typescript-eslint": "^8.48.1"
+    "esbuild": "^0.27.1",
+    "typescript-eslint": "^8.48.1",
+    "vitest": "^2.0.0",
+    "webpack": "^5.104.1",
+    "webpack-cli": "^6.0.1"
   }
 }

@@ -1,262 +1,311 @@
+/**
+ * Authentication service
+ * Handles login, logout, token storage, and user session management
+ */
+
 import * as vscode from "vscode";
+import { randomUUID } from "crypto";
 import {
-  createApiClientFromConfig,
-  getApiClientOptionsFromConfig,
-} from "../services/trpc.service";
+  trpc,
+  setAuthTokenProvider,
+  setInstallIdProvider,
+  setRefreshTokenHandler,
+} from "@/api/trpc-client";
+import { STORAGE_KEYS } from "@/shared/constants";
+import { getDashboardUrl } from "@/shared/config";
 
-const ACCESS_TOKEN_KEY_BASE = "watchapi.accessToken";
-const REFRESH_TOKEN_KEY_BASE = "watchapi.refreshToken";
-const INSTALL_ID_KEY = "watchapi.installId";
+import { AuthenticationError } from "@/shared/errors";
+import type { UserInfo, AuthState } from "./auth.types";
+import { logger } from "@/shared/logger";
 
-type Tokens = { accessToken: string; refreshToken: string };
-type JwtPayload = { exp?: number };
+export class AuthService {
+  private context: vscode.ExtensionContext;
+  private _onDidChangeAuthState = new vscode.EventEmitter<AuthState>();
+  public readonly onDidChangeAuthState = this._onDidChangeAuthState.event;
+  private isRefreshing = false;
+  private hasShownExpiryNotification = false;
 
-const TOKEN_EXPIRY_BUFFER_MS = 60_000;
+  constructor(context: vscode.ExtensionContext) {
+    this.context = context;
 
-function buildTokenKey(base: string) {
-  const apiUrl = getApiClientOptionsFromConfig()?.apiUrl;
-  if (!apiUrl) return base;
-
-  const normalized =
-    apiUrl.replace(/[^a-z0-9]/gi, "_").toLowerCase() || "default";
-  return `${base}:${normalized}`;
-}
-
-function decodeJwt(token: string): JwtPayload | null {
-  const [, payload] = token.split(".");
-  if (!payload) {
-    return null;
+    // Provide token to tRPC client
+    setAuthTokenProvider(() => this.getToken());
+    setInstallIdProvider(() => this.getOrCreateInstallId());
+    setRefreshTokenHandler(() => this.refreshAccessToken());
   }
 
-  try {
-    const decoded = Buffer.from(
-      payload.replace(/-/g, "+").replace(/_/g, "/"),
-      "base64",
-    ).toString("utf8");
-    const parsed = JSON.parse(decoded);
-    return typeof parsed === "object" && parsed !== null
-      ? (parsed as JwtPayload)
-      : null;
-  } catch (error) {
-    console.error("Failed to decode JWT payload", error);
-    return null;
-  }
-}
+  /**
+   * Initialize auth service and check existing session
+   */
+  async initialize(): Promise<void> {
+    const token = await this.getToken();
 
-function getErrorMessage(error: unknown): string {
-  if (typeof error === "string") {
-    return error;
-  }
+    if (!token) {
+      // No access token, try to refresh
+      const refreshed = await this.refreshAccessToken();
+      if (!refreshed) {
+        return;
+      }
+    }
 
-  if (error instanceof Error) {
-    return error.message;
-  }
-
-  const maybeMessage = (error as { message?: unknown })?.message;
-  return typeof maybeMessage === "string" ? maybeMessage : "";
-}
-
-export function isDeviceAlreadyRegisteredError(error: unknown): boolean {
-  return /device is already registered/i.test(getErrorMessage(error));
-}
-
-export function isEmailAlreadyRegisteredError(error: unknown): boolean {
-  return /email already exists/i.test(getErrorMessage(error));
-}
-
-function isTokenExpired(token: string): boolean {
-  const payload = decodeJwt(token);
-  if (!payload?.exp) {
-    return false;
-  }
-
-  const expiryMs = payload.exp * 1000;
-  return Date.now() >= expiryMs - TOKEN_EXPIRY_BUFFER_MS;
-}
-
-async function refreshTokens(
-  context: vscode.ExtensionContext,
-  installId: string,
-  refreshToken: string,
-): Promise<Tokens | null> {
-  try {
-    const client = createApiClientFromConfig({ installId });
-    const tokens = await client.mutation<Tokens>("auth.refreshToken", {
-      refreshToken,
-    });
-    await storeTokens(context, tokens);
-    return tokens;
-  } catch (error) {
-    console.warn("Failed to refresh WatchAPI tokens", error);
-    await clearTokens(context);
-    return null;
-  }
-}
-
-export async function getOrCreateInstallId(
-  context: vscode.ExtensionContext,
-): Promise<string> {
-  const existing = context.globalState.get<string>(INSTALL_ID_KEY);
-  if (existing) {
-    return existing;
-  }
-
-  const installId = crypto.randomUUID();
-  await context.globalState.update(INSTALL_ID_KEY, installId);
-  return installId;
-}
-
-export async function getStoredTokens(
-  context: vscode.ExtensionContext,
-): Promise<Tokens | null> {
-  const accessTokenKey = buildTokenKey(ACCESS_TOKEN_KEY_BASE);
-  const refreshTokenKey = buildTokenKey(REFRESH_TOKEN_KEY_BASE);
-
-  const [accessToken, refreshToken] = await Promise.all([
-    context.secrets.get(accessTokenKey),
-    context.secrets.get(refreshTokenKey),
-  ]);
-
-  // Fallback to legacy keys for older installs
-  const [legacyAccessToken, legacyRefreshToken] = await Promise.all([
-    context.secrets.get(ACCESS_TOKEN_KEY_BASE),
-    context.secrets.get(REFRESH_TOKEN_KEY_BASE),
-  ]);
-
-  const namespacedTokens =
-    accessToken && refreshToken ? { accessToken, refreshToken } : null;
-  const legacyTokens =
-    legacyAccessToken && legacyRefreshToken
-      ? { accessToken: legacyAccessToken, refreshToken: legacyRefreshToken }
-      : null;
-
-  return namespacedTokens ?? legacyTokens ?? null;
-}
-
-export async function storeTokens(
-  context: vscode.ExtensionContext,
-  tokens: Tokens,
-) {
-  const accessTokenKey = buildTokenKey(ACCESS_TOKEN_KEY_BASE);
-  const refreshTokenKey = buildTokenKey(REFRESH_TOKEN_KEY_BASE);
-
-  await Promise.all([
-    context.secrets.store(accessTokenKey, tokens.accessToken),
-    context.secrets.store(refreshTokenKey, tokens.refreshToken),
-  ]);
-}
-
-export async function clearTokens(context: vscode.ExtensionContext) {
-  const accessTokenKey = buildTokenKey(ACCESS_TOKEN_KEY_BASE);
-  const refreshTokenKey = buildTokenKey(REFRESH_TOKEN_KEY_BASE);
-
-  await Promise.all([
-    context.secrets.delete(accessTokenKey),
-    context.secrets.delete(refreshTokenKey),
-    // Clean up legacy keys too
-    context.secrets.delete(ACCESS_TOKEN_KEY_BASE),
-    context.secrets.delete(REFRESH_TOKEN_KEY_BASE),
-  ]);
-}
-
-export async function ensureGuestLogin(
-  context: vscode.ExtensionContext,
-  options?: { installId?: string },
-) {
-  const installId = options?.installId ?? (await getOrCreateInstallId(context));
-  const existing = await getStoredTokens(context);
-  if (existing) {
-    if (isTokenExpired(existing.accessToken)) {
-      const refreshed = await refreshTokens(
-        context,
-        installId,
-        existing.refreshToken,
-      );
+    try {
+      await this.verifySession();
+    } catch {
+      // Session verification failed, try to refresh token
+      logger.info("Session verification failed, attempting token refresh");
+      const refreshed = await this.refreshAccessToken();
       if (refreshed) {
-        return refreshed;
-      }
-    } else {
-      // Validate against the current API URL so switching environments doesn't reuse stale tokens
-      try {
-        const client = createApiClientFromConfig({
-          installId,
-          apiToken: existing.accessToken,
-        });
-        const verifiedUser = await client.query("auth.verifyToken", {
-          token: existing.accessToken,
-        });
-
-        if (verifiedUser) {
-          return existing;
+        // Try verifying again with new token
+        try {
+          await this.verifySession();
+        } catch {
+          await this.clearSession();
         }
-      } catch (error) {
-        console.warn(
-          "WatchAPI token validation failed, reauthenticating",
-          error,
-        );
+      } else {
+        await this.clearSession();
       }
-
-      await clearTokens(context);
     }
   }
 
-  const client = createApiClientFromConfig({ installId });
+  /**
+   * Login with email and password (OAuth flow)
+   * Opens browser for authentication
+   */
+  async login(): Promise<void> {
+    const installId = await this.getOrCreateInstallId();
 
-  const tokens = await client.mutation<Tokens>("auth.guestLogin");
-  await storeTokens(context, tokens);
+    const payload = Buffer.from(
+      JSON.stringify({ installId, source: "vscode-extension" }),
+    ).toString("base64url");
 
-  return tokens;
-}
+    const loginUrl = new URL("/login", getDashboardUrl());
+    loginUrl.searchParams.set("payload", payload);
 
-export async function upgradeGuestWithCredentials(
-  context: vscode.ExtensionContext,
-  input: {
-    email: string;
-    password: string;
-    name?: string;
-    invitationToken?: string;
-  },
-) {
-  const installId = await getOrCreateInstallId(context);
-  const client = createApiClientFromConfig({ installId });
+    await vscode.env.openExternal(vscode.Uri.parse(loginUrl.toString()));
+  }
 
-  const result = await client.mutation<{
-    requiresEmailVerification: boolean;
-    user: {
-      id: string;
-      email: string;
-      name?: string;
-      avatar?: string;
-      role: string;
+  /**
+   * Logout and clear stored credentials
+   */
+  async logout(): Promise<void> {
+    await this.clearSession();
+    vscode.window.showInformationMessage("Logged out successfully");
+  }
+
+  /**
+   * Get current user information
+   */
+  async getCurrentUser(): Promise<UserInfo | undefined> {
+    return this.context.globalState.get<UserInfo>(STORAGE_KEYS.USER_INFO);
+  }
+
+  /**
+   * Check if user is authenticated
+   */
+  async isAuthenticated(): Promise<boolean> {
+    const token = await this.getToken();
+    return !!token;
+  }
+
+  /**
+   * Get auth state
+   */
+  async getAuthState(): Promise<AuthState> {
+    const token = await this.getToken();
+    const user = await this.getCurrentUser();
+    const isAuthenticated = !!token && !!user;
+
+    return {
+      isAuthenticated,
+      user,
+      token,
     };
-    tokens: Tokens;
-  }>("auth.upgradeGuest", input);
+  }
 
-  await storeTokens(context, result.tokens);
-  return result;
-}
+  /**
+   * Refresh access token using refresh token
+   * @returns true if refresh was successful, false otherwise
+   */
+  async refreshAccessToken(): Promise<boolean> {
+    // Prevent multiple simultaneous refresh attempts
+    if (this.isRefreshing) {
+      logger.debug("Token refresh already in progress, waiting...");
+      // Wait for ongoing refresh to complete
+      await new Promise(resolve => setTimeout(resolve, 1000));
+      return this.isRefreshing ? false : !!await this.getToken();
+    }
 
-export async function loginWithCredentials(
-  context: vscode.ExtensionContext,
-  input: {
-    email: string;
-    password: string;
-  },
-) {
-  const installId = await getOrCreateInstallId(context);
-  const client = createApiClientFromConfig({ installId });
+    try {
+      this.isRefreshing = true;
 
-  const result = await client.mutation<{
-    user: {
-      id: string;
-      email: string;
-      name?: string;
-      avatar?: string;
-      role: string;
-    };
-    tokens: Tokens;
-  }>("auth.login", input);
+      const refreshToken = await this.getRefreshToken();
+      if (!refreshToken) {
+        logger.debug("No refresh token available");
+        return false;
+      }
 
-  await storeTokens(context, result.tokens);
-  return result;
+      logger.info("Attempting to refresh access token");
+      const response = await trpc.refreshToken({ refreshToken });
+
+      // Store new tokens
+      await this.storeToken(response.accessToken);
+      if (response.refreshToken) {
+        await this.storeRefreshToken(response.refreshToken);
+      }
+
+      logger.info("Access token refreshed successfully");
+      this.hasShownExpiryNotification = false; // Reset flag on success
+      return true;
+    } catch (error) {
+      logger.error("Token refresh failed", error);
+      await this.handleExpiredRefreshToken();
+      return false;
+    } finally {
+      this.isRefreshing = false;
+    }
+  }
+
+  /**
+   * Handle expired refresh token scenario
+   * Clears session and prompts user to log in again
+   */
+  private async handleExpiredRefreshToken(): Promise<void> {
+    await this.clearSession();
+
+    // Only show notification once to avoid spam
+    if (this.hasShownExpiryNotification) {
+      logger.debug("Session expiry notification already shown, skipping");
+      return;
+    }
+
+    this.hasShownExpiryNotification = true;
+
+    const action = await vscode.window.showWarningMessage(
+      "Your session has expired. Please log in again to continue.",
+      "Log In",
+      "Dismiss"
+    );
+
+    if (action === "Log In") {
+      await this.login();
+    }
+  }
+
+  /**
+   * Get stored JWT token
+   */
+  async getToken(): Promise<string | undefined> {
+    return this.context.secrets.get(STORAGE_KEYS.JWT_TOKEN);
+  }
+
+  private async getOrCreateInstallId(): Promise<string> {
+    const existing = this.context.globalState.get<string>(
+      STORAGE_KEYS.INSTALL_ID,
+    );
+    if (existing) {
+      return existing;
+    }
+
+    const installId = randomUUID();
+    await this.context.globalState.update(STORAGE_KEYS.INSTALL_ID, installId);
+    return installId;
+  }
+
+  /**
+   * Store JWT token securely
+   */
+  private async storeToken(token: string): Promise<void> {
+    await this.context.secrets.store(STORAGE_KEYS.JWT_TOKEN, token);
+  }
+
+  /**
+   * Get stored refresh token
+   */
+  private async getRefreshToken(): Promise<string | undefined> {
+    return this.context.secrets.get(STORAGE_KEYS.REFRESH_TOKEN);
+  }
+
+  /**
+   * Store refresh token securely
+   */
+  private async storeRefreshToken(token: string): Promise<void> {
+    await this.context.secrets.store(STORAGE_KEYS.REFRESH_TOKEN, token);
+  }
+
+  /**
+   * Verify current session and get user info
+   */
+  private async verifySession(): Promise<void> {
+    const user = await trpc.getMe();
+    if (!user) {
+      throw new AuthenticationError("Session is invalid or expired");
+    }
+
+    await this.context.globalState.update(STORAGE_KEYS.USER_INFO, user);
+
+    this._onDidChangeAuthState.fire({
+      isAuthenticated: true,
+      user,
+    });
+  }
+
+  /**
+   * Clear session data
+   */
+  private async clearSession(): Promise<void> {
+    await this.context.secrets.delete(STORAGE_KEYS.JWT_TOKEN);
+    await this.context.secrets.delete(STORAGE_KEYS.REFRESH_TOKEN);
+    await this.context.globalState.update(STORAGE_KEYS.USER_INFO, undefined);
+
+    this._onDidChangeAuthState.fire({
+      isAuthenticated: false,
+      user: undefined,
+    });
+  }
+
+  async handleAuthCallback(uri: vscode.Uri): Promise<void> {
+    try {
+      if (uri.path !== "/callback") {
+        return;
+      }
+
+      const params = new URLSearchParams(uri.query);
+      const token = params.get("token");
+      const refreshToken = params.get("refreshToken");
+
+      if (!token) {
+        throw new AuthenticationError("Missing access token");
+      }
+
+      logger.info("Received auth callback");
+
+      // Store tokens
+      await this.storeToken(token);
+      if (refreshToken) {
+        await this.storeRefreshToken(refreshToken);
+        logger.info("Stored refresh token");
+      }
+
+      // Load user profile
+      try {
+        await this.verifySession();
+      } catch {
+        await this.clearSession();
+      }
+
+      vscode.window.showInformationMessage(
+        "Successfully signed in to WatchAPI",
+      );
+    } catch (error) {
+      logger.error("Auth callback failed", error);
+      vscode.window.showErrorMessage("Sign-in failed. Please try again.");
+    }
+  }
+
+  /**
+   * Dispose resources
+   */
+  dispose(): void {
+    this._onDidChangeAuthState.dispose();
+  }
 }
