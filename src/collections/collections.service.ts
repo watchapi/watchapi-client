@@ -4,6 +4,7 @@
  * Supports both local storage (offline) and cloud sync (when authenticated)
  */
 
+import * as vscode from "vscode";
 import { trpc } from "@/api/trpc-client";
 import { logger } from "@/shared/logger";
 import { NotFoundError, ValidationError } from "@/shared/errors";
@@ -241,6 +242,54 @@ export class CollectionsService {
     } catch (error) {
       logger.error("Failed to search collections", error);
       throw error;
+    }
+  }
+
+  /**
+   * Interactive collection creation flow
+   * Shows input box and creates collection
+   *
+   * @returns Created collection, or undefined if cancelled
+   */
+  async createInteractive(): Promise<Collection | undefined> {
+    const name = await vscode.window.showInputBox({
+      prompt: "Enter collection name",
+      placeHolder: "e.g., User API",
+    });
+
+    if (!name) {
+      return undefined;
+    }
+
+    return await this.create({ name });
+  }
+
+  /**
+   * Show confirmation dialog for bulk delete
+   *
+   * @param collectionIds - Array of collection IDs to delete
+   * @returns true if confirmed, false if cancelled
+   */
+  async confirmBulkDelete(collectionIds: string[]): Promise<boolean> {
+    const confirm = await vscode.window.showWarningMessage(
+      `Delete ${collectionIds.length} collection${
+        collectionIds.length > 1 ? "s" : ""
+      }?`,
+      { modal: true },
+      "Delete",
+    );
+
+    return confirm === "Delete";
+  }
+
+  /**
+   * Delete multiple collections with progress indicator
+   *
+   * @param collectionIds - Array of collection IDs to delete
+   */
+  async bulkDelete(collectionIds: string[]): Promise<void> {
+    for (const id of collectionIds) {
+      await this.delete(id);
     }
   }
 }

@@ -37,6 +37,7 @@ export class CollectionsTreeProvider
   private _onDidChangeTreeData = new vscode.EventEmitter<
     CollectionTreeNode | undefined | void
   >();
+  private filter = "";
   readonly onDidChangeTreeData = this._onDidChangeTreeData.event;
 
   private collectionsService: CollectionsService;
@@ -55,6 +56,11 @@ export class CollectionsTreeProvider
    */
   refresh(): void {
     logger.debug("Refreshing collections tree view");
+    this._onDidChangeTreeData.fire();
+  }
+
+  setFilter(value: string) {
+    this.filter = value.toLowerCase();
     this._onDidChangeTreeData.fire();
   }
 
@@ -183,23 +189,27 @@ export class CollectionsTreeProvider
     switch (method.toLowerCase()) {
       case "get":
         return new vscode.ThemeIcon(
-          "cloud-download",
-          new vscode.ThemeColor("charts.blue"),
+          "debug-breakpoint-unverified",
+          new vscode.ThemeColor("charts.green"),
         );
       case "post":
         return new vscode.ThemeIcon(
-          "cloud-upload",
-          new vscode.ThemeColor("charts.green"),
+          "debug-breakpoint-unverified",
+          new vscode.ThemeColor("charts.yellow"),
         );
       case "put":
+        return new vscode.ThemeIcon(
+          "debug-breakpoint-unverified",
+          new vscode.ThemeColor("charts.blue"),
+        );
       case "patch":
         return new vscode.ThemeIcon(
-          "edit",
-          new vscode.ThemeColor("charts.yellow"),
+          "debug-breakpoint-unverified",
+          new vscode.ThemeColor("charts.purple"),
         );
       case "delete":
         return new vscode.ThemeIcon(
-          "trash",
+          "debug-breakpoint-unverified",
           new vscode.ThemeColor("charts.red"),
         );
       default:

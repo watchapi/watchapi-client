@@ -4,15 +4,18 @@
  * Supports both local storage (offline) and cloud sync (when authenticated)
  */
 
+import * as vscode from "vscode";
 import { trpc } from "@/api/trpc-client";
 import { logger } from "@/shared/logger";
 import { NotFoundError, ValidationError } from "@/shared/errors";
+import type { HttpMethod } from "@/shared/constants";
 import type { LocalStorageService } from "@/storage";
 import type {
   ApiEndpoint,
   CreateApiEndpointInput,
   UpdateApiEndpointInput,
 } from "@/shared/types";
+import { humanizeRouteName } from "./endpoints.editor";
 
 export class EndpointsService {
   private localStorage?: LocalStorageService;
@@ -254,4 +257,134 @@ export class EndpointsService {
       throw error;
     }
   }
+
+  /**
+   * Get HTTP method from user via quick pick
+   */
+  async promptHttpMethod(): Promise<HttpMethod | undefined> {
+    const method = await vscode.window.showQuickPick(
+      ["GET", "POST", "PUT", "PATCH", "DELETE"],
+      {
+        title: "Select HTTP method",
+        placeHolder: "Choose method",
+      },
+    );
+
+    return method as HttpMethod | undefined;
+  }
+
+  /**
+   * Get endpoint URL from user via input box
+   */
+  async promptEndpointUrl(): Promise<string | undefined> {
+    const url = await vscode.window.showInputBox({
+      title: "Endpoint path",
+      prompt: "Enter endpoint path",
+      placeHolder: "/users/:id",
+      validateInput: (value) =>
+        value.startsWith("/") ? null : "Path should start with /",
+    });
+
+    return url;
+  }
+
+  /**
+   * Get endpoint name from user via input box
+   *
+   * @param defaultName - Default name to pre-fill
+   */
+  async promptEndpointName(defaultName: string): Promise<string | undefined> {
+    const name = await vscode.window.showInputBox({
+      title: "Endpoint name",
+      prompt: "Enter endpoint name",
+      value: defaultName,
+      valueSelection: [0, defaultName.length], // Select all so Enter saves fast
+    });
+
+    return name;
+  }
+
+  /**
+   * Interactive endpoint creation flow
+   * Shows input dialogs for method, path, and name
+   *
+   * @param collectionId - Collection to add endpoint to
+   * @returns Created endpoint, or undefined if cancelled
+   */
+  async createInteractive(
+    collectionId: string,
+  ): Promise<ApiEndpoint | undefined> {
+    // 1️⃣ Ask for HTTP method
+    const method = await this.promptHttpMethod();
+    if (!method) {
+      return undefined;
+    }
+
+    // 2️⃣ Ask for URL
+    const url = await this.promptEndpointUrl();
+    if (!url) {
+      return undefined;
+    }
+
+    // 3️⃣ Ask for name (with smart default)
+    const defaultName = humanizeRouteName({ path: url, method });
+    const name = await this.promptEndpointName(defaultName);
+    if (!name) {
+      return undefined;
+    }
+
+    return await this.create({
+      name,
+      method,
+      url,
+      collectionId,
+    });
+  }
+
+  /**
+   * Show confirmation dialog for bulk delete
+   *
+   * @param endpointIds - Array of endpoint IDs to delete
+   * @returns true if confirmed, false if cancelled
+   */
+  async confirmBulkDelete(endpointIds: string[]): Promise<boolean> {
+    const confirm = await vscode.window.showWarningMessage(
+      `Delete ${endpointIds.length} endpoint${
+        endpointIds.length > 1 ? "s" : ""
+      }?`,
+      { modal: true },
+      "Delete",
+    );
+
+    return confirm === "Delete";
+  }
+
+  /**
+   * Delete multiple endpoints with progress indicator
+   *
+   * @param endpointIds - Array of endpoint IDs to delete
+   */
+  async bulkDelete(endpointIds: string[]): Promise<void> {
+    for (const id of endpointIds) {
+      await this.delete(id);
+    }
+  }
+
+  /**
+   * Get endpoint quick pick items for search
+   */
+  async getEndpointPickItems(): Promise<EndpointQuickPickItem[]> {
+    const endpoints = await this.getAll();
+
+    return endpoints.map((e) => ({
+      label: `${e.method.toUpperCase()} ${e.url}`,
+      description: e.method,
+      detail: e.name,
+      endpoint: e,
+    }));
+  }
+}
+
+export interface EndpointQuickPickItem extends vscode.QuickPickItem {
+  endpoint: ApiEndpoint;
 }
