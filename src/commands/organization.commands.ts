@@ -12,35 +12,36 @@ import type { SyncService } from "@/sync";
 import type { CollectionsTreeProvider } from "@/collections";
 
 export function registerOrganizationCommands(
-	context: vscode.ExtensionContext,
-	authService: AuthService,
-	organizationService: OrganizationService,
-	syncService: SyncService,
-	treeProvider: CollectionsTreeProvider,
+  context: vscode.ExtensionContext,
+  authService: AuthService,
+  organizationService: OrganizationService,
+  syncService: SyncService,
+  treeProvider: CollectionsTreeProvider,
 ): void {
-	// Switch organization command
-	context.subscriptions.push(
-		vscode.commands.registerCommand(
-			COMMANDS.SWITCH_ORGANIZATION,
-			wrapCommand(
-				{
-					commandName: "switchOrganization",
-					errorMessagePrefix: "Failed to switch organization",
-				},
-				async () => {
-					const selectedOrg = await organizationService.switchOrganizationInteractive(
-						authService,
-						syncService,
-					);
+  // Switch organization command
+  context.subscriptions.push(
+    vscode.commands.registerCommand(
+      COMMANDS.SWITCH_ORGANIZATION,
+      wrapCommand(
+        {
+          commandName: "switchOrganization",
+          errorMessagePrefix: "Failed to switch organization",
+        },
+        async () => {
+          const selectedOrg =
+            await organizationService.switchOrganizationInteractive(
+              authService,
+              syncService,
+            );
 
-					if (selectedOrg) {
-						treeProvider.refresh();
-						vscode.window.showInformationMessage(
-							`Selected organization: ${selectedOrg.name}`,
-						);
-					}
-				},
-			),
-		),
-	);
+          if (selectedOrg) {
+            treeProvider.refresh();
+            vscode.window.showInformationMessage(
+              `Switch organization: ${selectedOrg.name}`,
+            );
+          }
+        },
+      ),
+    ),
+  );
 }

@@ -11,7 +11,9 @@ import type { UserOrganization } from "@/shared/types";
 
 export class OrganizationService {
   private context: vscode.ExtensionContext;
-  private _onDidChangeOrganization = new vscode.EventEmitter<string | undefined>();
+  private _onDidChangeOrganization = new vscode.EventEmitter<
+    string | undefined
+  >();
   public readonly onDidChangeOrganization = this._onDidChangeOrganization.event;
 
   constructor(context: vscode.ExtensionContext) {
@@ -28,8 +30,13 @@ export class OrganizationService {
   /**
    * Set the currently selected organization ID
    */
-  async setCurrentOrganizationId(organizationId: string | undefined): Promise<void> {
-    await this.context.globalState.update(STORAGE_KEYS.SELECTED_ORG_ID, organizationId);
+  async setCurrentOrganizationId(
+    organizationId: string | undefined,
+  ): Promise<void> {
+    await this.context.globalState.update(
+      STORAGE_KEYS.SELECTED_ORG_ID,
+      organizationId,
+    );
     this._onDidChangeOrganization.fire(organizationId);
   }
 
@@ -66,10 +73,16 @@ export class OrganizationService {
       const tokens = await trpc.switchOrganization({ organizationId });
 
       // Update stored token
-      await this.context.secrets.store(STORAGE_KEYS.JWT_TOKEN, tokens.accessToken);
+      await this.context.secrets.store(
+        STORAGE_KEYS.JWT_TOKEN,
+        tokens.accessToken,
+      );
 
       if (tokens.refreshToken) {
-        await this.context.secrets.store(STORAGE_KEYS.REFRESH_TOKEN, tokens.refreshToken);
+        await this.context.secrets.store(
+          STORAGE_KEYS.REFRESH_TOKEN,
+          tokens.refreshToken,
+        );
       }
 
       // Update current organization
@@ -141,7 +154,7 @@ export class OrganizationService {
 
     const selected = await vscode.window.showQuickPick(items, {
       placeHolder: "Select an organization",
-      title: "Select Organization",
+      title: "Switch Organization",
     });
 
     if (!selected) {
