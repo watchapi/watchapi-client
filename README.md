@@ -39,7 +39,7 @@ Privacy Policy: [https://watchapi.dev/privacy](https://watchapi.dev/privacy)
 ## Need Help?
 
 Found a bug or missing feature?
-Open an issue on [GitHub](https://github.com/watchapi/watchapi-client/issues/new) or visit [https://watchapi.dev](https://watchapi.dev)
+Open an issue on [GitHub](https://github.com/watchapi/watchapi-client-support/issues/new) or visit [https://watchapi.dev](https://watchapi.dev)
 
 ---
 
