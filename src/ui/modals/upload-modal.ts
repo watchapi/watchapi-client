@@ -82,8 +82,8 @@ export class UploadModal {
 
     const items: RouteQuickPickItem[] = routes.map((route) => ({
       label: route.name,
-
-      detail: route.filePath,
+      description: route.path,
+      // detail: route.filePath,
       iconPath: CollectionsTreeProvider.getMethodIconPath(
         this.context,
         route.method,
@@ -93,8 +93,8 @@ export class UploadModal {
     }));
 
     const selected = await vscode.window.showQuickPick(items, {
-      title: "Select endpoints to import",
-      placeHolder: "Choose which endpoints to import",
+      title: "Select endpoints to pull",
+      placeHolder: "Choose which endpoints to pull",
       canPickMany: true,
     });
 
