@@ -87,8 +87,8 @@
       },
       {
         "command": "watchapi.uploadEndpoints",
-        "title": "WatchAPI: Import from Code",
-        "icon": "$(arrow-down)"
+        "title": "WatchAPI: Pull from Code",
+        "icon": "$(arrow-circle-down)"
       },
       {
         "command": "watchapi.deleteEndpoint",
@@ -122,8 +122,8 @@
       },
       {
         "command": "watchapi.uploadEndpoints",
-        "title": "WatchAPI: Import from Code",
-        "icon": "$(arrow-down)",
+        "title": "WatchAPI: Pull from Code",
+        "icon": "$(arrow-circle-down)",
         "when": "watchapi.canUpload"
       }
     ],
@@ -134,7 +134,7 @@
       },
       {
         "view": "watchapi.collections",
-        "contents": "[$(arrow-down) Import from Code](command:watchapi.uploadEndpoints)",
+        "contents": "[$(arrow-circle-down) Pull from Code](command:watchapi.uploadEndpoints)",
         "when": "watchapi.canUpload"
       },
       {
