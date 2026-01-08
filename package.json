@@ -1,8 +1,8 @@
 {
   "name": "watchapi-client",
-  "displayName": "WatchAPI — API Client for Next.js & NestJS",
-  "description": "Bulk import and organize REST and HTTP API endpoints from Next.js, NestJS, and tRPC projects",
-  "version": "0.1.4",
+  "displayName": "WatchAPI - REST Client & API Testing",
+  "description": "REST API client for testing and monitoring endpoints. Auto-import from Next.js, NestJS & tRPC. Alternative to Postman and Insomnia.",
+  "version": "0.2.1",
   "icon": "assets/marketplace-logo.png",
   "publisher": "watchapi",
   "engines": {
@@ -10,20 +10,28 @@
   },
   "categories": [
     "Testing",
-    "Programming Languages"
+    "Debuggers"
   ],
   "keywords": [
+    "rest",
+    "api",
+    "http",
+    "rest-client",
+    "api-client",
+    "http-client",
+    "api-testing",
+    "postman",
+    "insomnia",
+    "thunder-client",
+    "request",
+    "endpoint",
     "nextjs",
     "nestjs",
     "trpc",
-    "api-client",
-    "api-testing",
-    "rest-client",
-    "http",
-    "typescript",
-    "vscode"
+    "swagger",
+    "openapi",
+    "typescript"
   ],
-  "preview": true,
   "repository": {
     "url": "https://github.com/watchapi/watchapi-client-support"
   },
@@ -31,23 +39,21 @@
     "onStartupFinished"
   ],
   "main": "./dist/extension.js",
-  "keybindings": [
-    {
-      "command": "watchapi.deleteEndpoint",
-      "mac": "cmd+backspace",
-      "key": "delete",
-      "when": "view == watchapi.collections && viewItem == endpoint",
-      "description": "Delete the selected API endpoint"
-    },
-    {
-      "command": "watchapi.deleteCollection",
-      "mac": "cmd+backspace",
-      "key": "delete",
-      "when": "view == watchapi.collections && viewItem == collection",
-      "description": "Delete the selected API collection"
-    }
-  ],
   "contributes": {
+    "keybindings": [
+      {
+        "command": "watchapi.deleteEndpoint",
+        "key": "delete",
+        "mac": "cmd+backspace",
+        "when": "view == watchapi.collections && viewItem == endpoint"
+      },
+      {
+        "command": "watchapi.deleteCollection",
+        "key": "delete",
+        "mac": "cmd+backspace",
+        "when": "view == watchapi.collections && viewItem == collection"
+      }
+    ],
     "uriHandlers": [
       {
         "id": "watchapi.watchapi-client"
@@ -75,7 +81,7 @@
       },
       {
         "command": "watchapi.deleteCollection",
-        "title": "Delete Collection(s)",
+        "title": "Delete",
         "icon": "$(bin)",
         "enablement": "view == watchapi.collections"
       },
@@ -92,7 +98,7 @@
       },
       {
         "command": "watchapi.deleteEndpoint",
-        "title": "Delete Endpoint(s)",
+        "title": "Delete",
         "enablement": "view == watchapi.collections"
       },
       {
@@ -208,7 +214,7 @@
         {
           "id": "watchapi",
           "title": "WatchAPI Client",
-          "icon": "assets/icon.png"
+          "icon": "assets/icon.svg"
         }
       ]
     },
@@ -225,13 +231,13 @@
       "properties": {
         "watchapi.apiUrl": {
           "type": "string",
-          "default": "https://watchapi.com",
+          "default": "https://watchapi.dev",
           "markdownDescription": "WatchAPI backend URL. Change this if you're running a self-hosted instance.",
           "order": 1
         },
         "watchapi.dashboardUrl": {
           "type": "string",
-          "default": "https://watchapi.com",
+          "default": "https://watchapi.dev",
           "markdownDescription": "WatchAPI dashboard URL for opening in browser.",
           "order": 2
         },
