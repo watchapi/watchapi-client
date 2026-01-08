@@ -50,7 +50,7 @@ export interface CommandOptions {
  * );
  * ```
  */
-export function wrapCommand<TArgs extends any[]>(
+export function wrapCommand<TArgs extends unknown[]>(
 	options: CommandOptions,
 	handler: (...args: TArgs) => Promise<void>,
 ): (...args: TArgs) => Promise<void> {
@@ -77,7 +77,7 @@ export function wrapCommand<TArgs extends any[]>(
 /**
  * Specialized wrapper for commands that need tree refresh
  */
-export function wrapCommandWithRefresh<TArgs extends any[]>(
+export function wrapCommandWithRefresh<TArgs extends unknown[]>(
 	options: CommandOptions,
 	handler: (...args: TArgs) => Promise<void>,
 	refreshCallback: () => void,

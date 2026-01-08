@@ -7,7 +7,7 @@ import * as vscode from "vscode";
 import { CollectionsService } from "@/collections/collections.service";
 import { EndpointsService } from "@/endpoints/endpoints.service";
 import { logger } from "@/shared/logger";
-import type { ParsedRoute } from "@/shared/types";
+import type { ParsedRoute, Collection, ApiEndpoint } from "@/shared/types";
 import { humanizeRouteName } from "@/endpoints/endpoints.editor";
 import { CollectionsTreeProvider } from "@/collections";
 
@@ -201,7 +201,7 @@ export class UploadModal {
    */
   private buildMergePlan(
     sourceRoutes: ParsedRoute[],
-    existingEndpoints: any[],
+    existingEndpoints: ApiEndpoint[],
     workspaceRoot: string,
   ) {
     const existingByExternalId = new Map(
@@ -212,7 +212,7 @@ export class UploadModal {
 
     const sourceExternalIds = new Set<string>();
     const toCreate: Array<{ route: ParsedRoute; externalId: string }> = [];
-    const toUpdate: Array<{ route: ParsedRoute; existing: any }> = [];
+    const toUpdate: Array<{ route: ParsedRoute; existing: ApiEndpoint }> = [];
 
     // Classify source routes
     for (const route of sourceRoutes) {
@@ -279,10 +279,10 @@ export class UploadModal {
   private buildUpdatePayload(
     route: ParsedRoute,
     fields: readonly string[],
-  ): Record<string, any> {
-    const payload: Record<string, any> = {};
+  ): Record<string, unknown> {
+    const payload: Record<string, unknown> = {};
     // Map code fields to schema layers
-    const routeMap: Record<string, any> = {
+    const routeMap: Record<string, unknown> = {
       pathTemplate: route.path,
       method: route.method,
       name: route.name,
@@ -304,7 +304,7 @@ export class UploadModal {
     route: ParsedRoute,
     externalId: string,
     collectionId: string,
-    defaults: Record<string, any>,
+    defaults: Record<string, unknown>,
   ) {
     return {
       externalId,
@@ -331,8 +331,7 @@ export class UploadModal {
    *   endpoint.bodyOverrides
    * );
    */
-  // eslint-disable-next-line @typescript-eslint/no-unused-vars
-  private applyOverrides<T extends Record<string, any>>(
+  private applyOverrides<T extends Record<string, unknown>>(
     schema: T | null,
     overrides: Partial<T> | null,
   ): T | null {
@@ -351,7 +350,6 @@ export class UploadModal {
    * // In monitoring/execution service:
    * const effectiveHeaders = this.buildEffectiveHeaders(endpoint);
    */
-  // eslint-disable-next-line @typescript-eslint/no-unused-vars
   private buildEffectiveHeaders(endpoint: {
     headersSchema?: Record<string, string> | null;
     headersOverrides?: Record<string, string> | null;
@@ -366,7 +364,7 @@ export class UploadModal {
    * Find or create collection
    */
   private async findOrCreateCollection(
-    existingCollections: any[],
+    existingCollections: Collection[],
     groupName: string,
   ) {
     const existing = existingCollections.find((c) => c.name === groupName);

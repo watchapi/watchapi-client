@@ -133,13 +133,13 @@ export class EndpointsService {
           `Fetching endpoints for collection from cloud: ${collectionId}`,
         );
         const allEndpoints = await trpc.getEndpoints();
-        const endpoints = allEndpoints.filter(
-          (e: any) => e.collectionId === collectionId,
+        const endpoints = (allEndpoints as ApiEndpoint[]).filter(
+          (e) => e.collectionId === collectionId,
         );
         logger.info(
           `Fetched ${endpoints.length} endpoints for collection from cloud: ${collectionId}`,
         );
-        return endpoints as ApiEndpoint[];
+        return endpoints;
       } else {
         logger.debug(
           `Fetching endpoints for collection locally: ${collectionId}`,
@@ -190,7 +190,7 @@ export class EndpointsService {
         return endpoint;
       } else {
         logger.debug("Creating endpoint locally", input);
-        const endpoint = await this.localStorage!.createEndpoint(input as any);
+        const endpoint = await this.localStorage!.createEndpoint(input);
         logger.info(
           `Created endpoint locally: ${endpoint.name} (${endpoint.id})`,
         );

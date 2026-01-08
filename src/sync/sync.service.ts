@@ -11,13 +11,14 @@ import { logger } from '@/shared/logger';
 import { SyncError } from '@/shared/errors';
 import { STORAGE_KEYS, SYNC_CONFIG } from '@/shared/constants';
 import type { Collection, ApiEndpoint, SyncState } from '@/shared/types';
+import type { LocalStorageService } from '@/storage/local-storage.service';
 
 export class SyncService {
 	private context: vscode.ExtensionContext;
 	private collectionsService: CollectionsService;
 	private endpointsService: EndpointsService;
 	private cacheService: CacheService;
-	private localStorage?: any;
+	private localStorage?: LocalStorageService;
 
 	private _onDidChangeState = new vscode.EventEmitter<SyncState>();
 	public readonly onDidChangeState = this._onDidChangeState.event;
@@ -41,7 +42,7 @@ export class SyncService {
 	/**
 	 * Set local storage reference for migration
 	 */
-	setLocalStorage(localStorage: any): void {
+	setLocalStorage(localStorage: LocalStorageService): void {
 		this.localStorage = localStorage;
 	}
 
@@ -90,6 +91,7 @@ export class SyncService {
 			// Upload collections first (endpoints reference collections)
 			const collectionIdMap = new Map<string, string>();
 			for (const localCollection of localCollections) {
+				// eslint-disable-next-line @typescript-eslint/no-unused-vars
 				const { id, createdAt, updatedAt, ...input } = localCollection;
 				const cloudCollection = await this.collectionsService.create(input);
 				collectionIdMap.set(id, cloudCollection.id);
@@ -98,6 +100,7 @@ export class SyncService {
 
 			// Upload endpoints with updated collection IDs
 			for (const localEndpoint of localEndpoints) {
+				// eslint-disable-next-line @typescript-eslint/no-unused-vars
 				const { id, createdAt, updatedAt, collectionId, ...input } = localEndpoint;
 				const cloudCollectionId = collectionId
 					? collectionIdMap.get(collectionId)

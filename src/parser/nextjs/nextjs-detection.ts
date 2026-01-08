@@ -82,7 +82,7 @@ export function extractRoutePath(
 
 		// Ensure API routes start with /api
 		if (!routePath.startsWith('api/') && routePath !== '') {
-			routePath = routePath;
+			// Non-API routes: keep as-is
 		} else {
 			routePath = '/' + routePath;
 		}

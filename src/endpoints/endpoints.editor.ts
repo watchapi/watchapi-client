@@ -1,6 +1,6 @@
 import * as vscode from "vscode";
 import { logger } from "@/shared/logger";
-import type { ApiEndpoint, ParsedRoute } from "@/shared/types";
+import type { ApiEndpoint } from "@/shared/types";
 
 /**
  * Open endpoint in .http editor

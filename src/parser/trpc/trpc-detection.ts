@@ -57,7 +57,7 @@ export function collectRouterCallSites(
 		}
 		seen.add(key);
 
-		const name = inferRouterName(node, detection);
+		const name = inferRouterName(node);
 		debug(
 			`Detected router factory call${name ? ` '${name}'` : ''} at line ${node.getStartLineNumber()}`,
 		);
@@ -191,7 +191,6 @@ function matchesFactoryExpression(
  */
 function inferRouterName(
 	node: CallExpression,
-	_detection: RouterDetectionConfig,
 ): string | null {
 	const varDecl = node.getFirstAncestorByKind(SyntaxKind.VariableDeclaration);
 	if (varDecl) {
@@ -252,7 +251,7 @@ function buildRouterIdentifierPattern(
 	}
 	try {
 		return new RegExp(pattern);
-	} catch (error) {
+	} catch {
 		debug?.(
 			`Failed to parse router identifier pattern '${pattern}', falling back to default: ${ROUTER_IDENTIFIER_PATTERN}`,
 		);
