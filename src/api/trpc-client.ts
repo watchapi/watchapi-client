@@ -8,8 +8,8 @@ import { logger } from "@/shared/logger";
 import { NetworkError } from "@/shared/errors";
 
 type TrpcClient = {
-  query: (path: string, input?: unknown) => Promise<unknown>;
-  mutation: (path: string, input?: unknown) => Promise<unknown>;
+  query: (path: string, input?: unknown) => Promise<any>;
+  mutation: (path: string, input?: unknown) => Promise<any>;
 };
 
 /**
@@ -149,11 +149,11 @@ export class ApiClient {
     return this.client.query("apiEndpoint.get", input);
   }
 
-  async createEndpoint(input: unknown) {
+  async createEndpoint(input: any) {
     return this.client.mutation("apiEndpoint.create", input);
   }
 
-  async updateEndpoint(input: unknown) {
+  async updateEndpoint(input: any) {
     return this.client.mutation("apiEndpoint.update", input);
   }
 

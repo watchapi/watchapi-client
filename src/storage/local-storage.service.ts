@@ -5,7 +5,7 @@
 
 import * as vscode from "vscode";
 import { randomUUID } from "crypto";
-import type { Collection, ApiEndpoint } from "@/shared/types";
+import type { Collection, ApiEndpoint, CreateApiEndpointInput } from "@/shared/types";
 
 const STORAGE_KEYS = {
   COLLECTIONS: "watchapi.local.collections",
@@ -115,7 +115,7 @@ export class LocalStorageService {
   }
 
   async createEndpoint(
-    input: Omit<ApiEndpoint, "id" | "createdAt" | "updatedAt">,
+    input: CreateApiEndpointInput,
   ): Promise<ApiEndpoint> {
     const endpoints = await this.getEndpoints();
     const now = new Date().toISOString();
