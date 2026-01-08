@@ -193,16 +193,21 @@ function parseControllerFile(
             );
             for (const methodName of routeDecorator.methods) {
               for (const routePath of routePaths) {
+                const effectiveBody = bodyExample && shouldIncludeBody(methodName) ? bodyExample : undefined;
+
+                // Auto-add Content-Type for JSON bodies
+                const finalHeaders = { ...methodHeaders };
+                if (effectiveBody && !finalHeaders['Content-Type']) {
+                  finalHeaders['Content-Type'] = 'application/json';
+                }
+
                 handlers.push({
                   path: routePath,
                   method: methodName,
                   file: path.relative(rootDir, sourceFile.getFilePath()),
                   line: method.getStartLineNumber(),
-                  headers: methodHeaders,
-                  bodyExample:
-                    bodyExample && shouldIncludeBody(methodName)
-                      ? bodyExample
-                      : undefined,
+                  headers: finalHeaders,
+                  bodyExample: effectiveBody,
                 });
 
                 debug(
