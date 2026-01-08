@@ -126,19 +126,16 @@ export class UploadModal {
     // When endpoint exists in source but not destination
     onCreate: {
       action: "create" as const,
-      // Initialize requestPath from template, start inactive
       // Schema starts from code, overrides start empty
       defaults: {
-        isActive: false,
         bodyOverrides: null,
         headersOverrides: null,
       },
     },
     // When endpoint exists in destination but not source
     onOrphan: {
-      action: "deactivate" as const,
-      // Preserve the endpoint but mark inactive
-      fields: ["isActive"] as const,
+      action: "ignore" as const,
+      // Leave orphaned endpoints as-is (user can manually delete if needed)
     },
   } as const;
 
@@ -271,11 +268,8 @@ export class UploadModal {
       stats.created++;
     }
 
-    // Execute deactivations
-    for (const endpoint of plan.toDeactivate) {
-      await this.endpointsService.update(endpoint.id, { isActive: false });
-      stats.deactivated++;
-    }
+    // Skip deactivations - orphaned endpoints are ignored (left as-is)
+    // Users can manually delete endpoints if needed
   }
 
   /**
