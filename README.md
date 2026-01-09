@@ -1,6 +1,6 @@
 # WatchAPI - REST Client & API Testing
 
-[![CI](https://github.com/watchapi/watchapi-client/actions/workflows/ci.yml/badge.svg)](https://github.com/watchapi/watchapi-client/actions/workflows/ci.yml)
+[![CI](https://github.com/watchapi/watchapi-vscode/actions/workflows/ci.yml/badge.svg)](https://github.com/watchapi/watchapi-vscode/actions/workflows/ci.yml)
 [![Version](https://img.shields.io/visual-studio-marketplace/v/watchapi.watchapi-client?label=VS%20Code%20Marketplace)](https://marketplace.visualstudio.com/items?itemName=watchapi.watchapi-client)
 [![Downloads](https://img.shields.io/visual-studio-marketplace/d/watchapi.watchapi-client)](https://marketplace.visualstudio.com/items?itemName=watchapi.watchapi-client)
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
@@ -97,8 +97,8 @@ Privacy Policy: [https://watchapi.dev/privacy](https://watchapi.dev/privacy)
 We welcome contributions! WatchAPI Client is open source and community-driven.
 
 - **Read the [Contributing Guide](CONTRIBUTING.md)** to get started
-- **Report bugs** via [GitHub Issues](https://github.com/watchapi/watchapi-client/issues)
-- **Request features** via [GitHub Discussions](https://github.com/watchapi/watchapi-client/discussions)
+- **Report bugs** via [GitHub Issues](https://github.com/watchapi/watchapi-vscode/issues)
+- **Request features** via [GitHub Discussions](https://github.com/watchapi/watchapi-vscode/discussions)
 - **Submit PRs** - we review and merge regularly
 - **Review the [Code of Conduct](CODE_OF_CONDUCT.md)** before contributing
 
@@ -106,8 +106,8 @@ See [SECURITY.md](SECURITY.md) for reporting security vulnerabilities.
 
 ## Support
 
-- **Report Issues:** [GitHub Issues](https://github.com/watchapi/watchapi-client/issues)
-- **Discussions:** [GitHub Discussions](https://github.com/watchapi/watchapi-client/discussions)
+- **Report Issues:** [GitHub Issues](https://github.com/watchapi/watchapi-vscode/issues)
+- **Discussions:** [GitHub Discussions](https://github.com/watchapi/watchapi-vscode/discussions)
 - **Documentation:** [docs.watchapi.dev](https://docs.watchapi.dev)
 - **Website:** [watchapi.dev](https://watchapi.dev)
 

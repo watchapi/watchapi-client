@@ -40,8 +40,8 @@ This project adheres to a Code of Conduct that all contributors are expected to 
 
 ```bash
 # Clone your fork
-git clone https://github.com/YOUR_USERNAME/watchapi-client.git
-cd watchapi-client
+git clone https://github.com/YOUR_USERNAME/watchapi-vscode.git
+cd watchapi-vscode
 
 # Install dependencies
 pnpm install
@@ -72,11 +72,13 @@ pnpm run vscode:package # Create .vsix package
 ### Reporting Bugs
 
 Before submitting a bug report:
+
 - Check the [existing issues](../../issues) to avoid duplicates
 - Update to the latest version to see if the issue persists
 - Collect information about your environment (OS, VS Code version, extension version)
 
 When submitting a bug report, include:
+
 - Clear, descriptive title
 - Steps to reproduce the issue
 - Expected vs actual behavior
@@ -87,11 +89,13 @@ When submitting a bug report, include:
 ### Suggesting Features
 
 Feature requests are welcome! Before submitting:
+
 - Check existing issues and discussions
 - Ensure the feature aligns with project goals
 - Consider if it could be implemented as a separate extension
 
 When suggesting a feature:
+
 - Provide a clear use case
 - Explain the expected behavior
 - Consider alternative solutions
@@ -100,6 +104,7 @@ When suggesting a feature:
 ### Code Contributions
 
 Areas where contributions are especially welcome:
+
 - Bug fixes
 - Performance improvements
 - Documentation improvements
@@ -110,6 +115,7 @@ Areas where contributions are especially welcome:
 ## Pull Request Process
 
 1. **Create a Branch**
+
    ```bash
    git checkout -b feature/your-feature-name
    # or
@@ -117,6 +123,7 @@ Areas where contributions are especially welcome:
    ```
 
 2. **Make Your Changes**
+
    - Write clear, self-documenting code
    - Add tests for new functionality
    - Update documentation as needed
@@ -124,17 +131,20 @@ Areas where contributions are especially welcome:
    - Follow the coding standards
 
 3. **Commit Your Changes**
+
    ```bash
    git add .
    git commit -m "feat: add new feature"
    ```
 
 4. **Push to Your Fork**
+
    ```bash
    git push origin feature/your-feature-name
    ```
 
 5. **Open a Pull Request**
+
    - Use a clear, descriptive title
    - Reference any related issues
    - Describe what changes you made and why

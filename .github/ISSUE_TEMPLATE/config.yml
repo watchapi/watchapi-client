@@ -1,7 +1,7 @@
 blank_issues_enabled: false
 contact_links:
   - name: Question or Discussion
-    url: https://github.com/watchapi/watchapi-client-support/discussions
+    url: https://github.com/watchapi/watchapi-vscode-support/discussions
     about: Ask questions or discuss ideas with the community
   - name: Documentation
     url: https://watchapi.dev/docs

@@ -67,5 +67,5 @@ jobs:
       - name: Upload VSIX artifact
         uses: actions/upload-artifact@v4
         with:
-          name: watchapi-client-${{ github.sha }}.vsix
+          name: watchapi-vscode-${{ github.sha }}.vsix
           path: '*.vsix'
