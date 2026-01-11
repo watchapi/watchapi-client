@@ -8,7 +8,7 @@
 import {
   extractBodyFromSchema,
   extractQueryParamsFromSchema,
-} from "../zod-schema-parser";
+} from "./zod-schema-parser";
 import type { Node } from "ts-morph";
 
 /**
