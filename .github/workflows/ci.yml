@@ -7,8 +7,32 @@ on:
     branches: [main]
 
 jobs:
-  test:
+  # Detect which packages changed
+  changes:
     runs-on: ubuntu-latest
+    outputs:
+      vscode: ${{ steps.filter.outputs.vscode }}
+      cli: ${{ steps.filter.outputs.cli }}
+    steps:
+      - uses: actions/checkout@v4
+      - uses: dorny/paths-filter@v3
+        id: filter
+        with:
+          filters: |
+            vscode:
+              - 'packages/vscode-extension/**'
+              - 'pnpm-lock.yaml'
+              - 'pnpm-workspace.yaml'
+            cli:
+              - 'packages/cli/**'
+              - 'pnpm-lock.yaml'
+              - 'pnpm-workspace.yaml'
+
+  # Test VSCode extension
+  test-vscode:
+    runs-on: ubuntu-latest
+    needs: changes
+    if: needs.changes.outputs.vscode == 'true'
 
     strategy:
       matrix:
@@ -19,8 +43,6 @@ jobs:
 
       - name: Setup pnpm
         uses: pnpm/action-setup@v4
-        with:
-          version: 9
 
       - name: Setup Node.js ${{ matrix.node-version }}
         uses: actions/setup-node@v4
@@ -32,25 +54,62 @@ jobs:
         run: pnpm install --frozen-lockfile
 
       - name: Type check
-        run: pnpm run check-types
+        run: pnpm --filter watchapi-client run check-types
 
       - name: Lint
-        run: pnpm run lint
+        run: pnpm --filter watchapi-client run lint
 
       - name: Build
-        run: pnpm run package
+        run: pnpm --filter watchapi-client run package
 
-  build-vsix:
+  # Test CLI
+  test-cli:
     runs-on: ubuntu-latest
-    needs: test
+    needs: changes
+    if: needs.changes.outputs.cli == 'true'
+
+    strategy:
+      matrix:
+        node-version: [18.x, 20.x]
 
     steps:
       - uses: actions/checkout@v4
 
       - name: Setup pnpm
         uses: pnpm/action-setup@v4
+
+      - name: Setup Node.js ${{ matrix.node-version }}
+        uses: actions/setup-node@v4
         with:
-          version: 9
+          node-version: ${{ matrix.node-version }}
+          cache: 'pnpm'
+
+      - name: Install dependencies
+        run: pnpm install --frozen-lockfile
+
+      - name: Type check
+        run: pnpm --filter @watchapi/cli run check-types
+
+      - name: Lint
+        run: pnpm --filter @watchapi/cli run lint
+
+      - name: Build
+        run: pnpm --filter @watchapi/cli run build
+
+      - name: Test
+        run: pnpm --filter @watchapi/cli run test
+
+  # Build VSIX artifact
+  build-vsix:
+    runs-on: ubuntu-latest
+    needs: [changes, test-vscode]
+    if: needs.changes.outputs.vscode == 'true'
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Setup pnpm
+        uses: pnpm/action-setup@v4
 
       - name: Setup Node.js
         uses: actions/setup-node@v4
@@ -61,11 +120,11 @@ jobs:
       - name: Install dependencies
         run: pnpm install --frozen-lockfile
 
-      - name: Package extension
+      - name: Package VSCode extension
         run: pnpm run vscode:package
 
       - name: Upload VSIX artifact
         uses: actions/upload-artifact@v4
         with:
           name: watchapi-vscode-${{ github.sha }}.vsix
-          path: '*.vsix'
+          path: 'packages/vscode-extension/*.vsix'
