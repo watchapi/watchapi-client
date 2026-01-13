@@ -30,6 +30,9 @@ jobs:
       - name: Install dependencies
         run: pnpm install --frozen-lockfile
 
+      - name: Build parsers
+        run: pnpm --filter @watchapi/parsers run build
+
       - name: Type check
         run: pnpm --filter watchapi-client run check-types
 
@@ -80,6 +83,9 @@ jobs:
 
       - name: Install dependencies
         run: pnpm install --frozen-lockfile
+
+      - name: Build parsers
+        run: pnpm --filter @watchapi/parsers run build
 
       - name: Type check
         run: pnpm --filter @watchapi/cli run check-types

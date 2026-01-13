@@ -22,10 +22,12 @@ jobs:
           filters: |
             vscode:
               - 'packages/vscode-extension/**'
+              - 'packages/parsers/**'
               - 'pnpm-lock.yaml'
               - 'pnpm-workspace.yaml'
             cli:
               - 'packages/cli/**'
+              - 'packages/parsers/**'
               - 'pnpm-lock.yaml'
               - 'pnpm-workspace.yaml'
             docs:
@@ -57,6 +59,9 @@ jobs:
 
       - name: Install dependencies
         run: pnpm install --frozen-lockfile
+
+      - name: Build parsers
+        run: pnpm --filter @watchapi/parsers run build
 
       - name: Type check
         run: pnpm --filter watchapi-client run check-types
@@ -92,6 +97,9 @@ jobs:
       - name: Install dependencies
         run: pnpm install --frozen-lockfile
 
+      - name: Build parsers
+        run: pnpm --filter @watchapi/parsers run build
+
       - name: Type check
         run: pnpm --filter @watchapi/cli run check-types
 
@@ -124,6 +132,9 @@ jobs:
 
       - name: Install dependencies
         run: pnpm install --frozen-lockfile
+
+      - name: Build parsers
+        run: pnpm --filter @watchapi/parsers run build
 
       - name: Package VSCode extension
         run: pnpm run vscode:package
