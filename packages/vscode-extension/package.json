@@ -1,7 +1,7 @@
 {
     "name": "watchapi-client",
-    "displayName": "WatchAPI - REST Client & API Testing",
-    "description": "REST API client for testing and monitoring endpoints. Auto-import from Next.js, NestJS & tRPC. Alternative to Postman and Insomnia.",
+    "displayName": "WatchAPI - Code-Synced API Client for Next.js, NestJS & tRPC",
+    "description": "Auto-sync API requests directly from your backend code. Built for Next.js, NestJS, and tRPC - no manual setup, no drift.",
     "version": "0.2.5",
     "icon": "assets/marketplace-logo.png",
     "publisher": "watchapi",
@@ -13,34 +13,32 @@
         "Debuggers"
     ],
     "keywords": [
-        "rest",
         "api",
         "http",
-        "rest-client",
-        "api-client",
-        "http-client",
-        "api-testing",
-        "postman",
-        "insomnia",
-        "thunder-client",
-        "request",
-        "endpoint",
+        "api-sync",
+        "code-synced",
+        "schema-sync",
+        "endpoint-sync",
+        "api-from-code",
+        "source-of-truth",
+        "backend",
+        "typescript",
         "nextjs",
         "nestjs",
         "trpc",
-        "swagger",
-        "openapi",
-        "typescript"
+        "api-client",
+        "request"
     ],
     "license": "MIT",
     "repository": {
         "type": "git",
-        "url": "https://github.com/watchapi/watchapi-vscode"
+        "url": "https://github.com/watchapi/watchapi",
+        "directory": "packages/vscode-extension"
     },
     "bugs": {
-        "url": "https://github.com/watchapi/watchapi-vscode/issues"
+        "url": "https://github.com/watchapi/watchapi/issues"
     },
-    "homepage": "https://github.com/watchapi/watchapi-vscode#readme",
+    "homepage": "https://github.com/watchapi/watchapi/tree/main/packages/vscode-extension#readme",
     "activationEvents": [
         "onStartupFinished"
     ],
@@ -99,8 +97,8 @@
             },
             {
                 "command": "watchapi.uploadEndpoints",
-                "title": "WatchAPI: Pull from Code",
-                "icon": "$(arrow-circle-down)"
+                "title": "WatchAPI: Sync from Code",
+                "icon": "$(sync)"
             },
             {
                 "command": "watchapi.deleteEndpoint",
@@ -139,8 +137,8 @@
             },
             {
                 "command": "watchapi.uploadEndpoints",
-                "title": "WatchAPI: Pull from Code",
-                "icon": "$(arrow-circle-down)",
+                "title": "WatchAPI: Sync from Code",
+                "icon": "$(sync)",
                 "when": "watchapi.canUpload"
             }
         ],
@@ -151,7 +149,7 @@
             },
             {
                 "view": "watchapi.collections",
-                "contents": "[$(arrow-circle-down) Pull from Code](command:watchapi.uploadEndpoints)",
+                "contents": "[$(sync) Sync from Code](command:watchapi.uploadEndpoints)",
                 "when": "watchapi.canUpload"
             },
             {

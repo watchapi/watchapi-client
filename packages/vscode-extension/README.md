@@ -1,43 +1,36 @@
-# WatchAPI - REST Client & API Testing
+# WatchAPI — Code-Synced API Client
 
+[![License: MIT](https://img.shields.io/badge/License-MIT-green.svg)](https://opensource.org/licenses/MIT)
 [![CI](https://github.com/watchapi/watchapi/actions/workflows/ci.yml/badge.svg)](https://github.com/watchapi/watchapi/actions/workflows/ci.yml)
-[![VS Code Marketplace Version](https://img.shields.io/visual-studio-marketplace/v/WatchAPI.watchapi-client)](https://marketplace.visualstudio.com/items?itemName=WatchAPI.watchapi-client)
-[![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
+[![Open VSX Downloads](https://img.shields.io/open-vsx/dt/watchapi/watchapi-client)](https://open-vsx.org/extension/watchapi/watchapi-client)
+![Contributions](https://img.shields.io/badge/contributions-welcome-brightgreen)
+![Last Commit](https://img.shields.io/github/last-commit/watchapi/watchapi)
 <a href="https://discord.gg/5bANxHbfNx">
 <img src="https://img.shields.io/badge/chat-on%20discord-7289DA.svg" alt="Discord Chat" />
 </a>
 
-> WatchAPI is REST & tRPC Client for modern backends
+> **Make code as source of truth** for your API tests, sync endpoints directly from Next.js, NestJS, and tRPC.
 
 ![WatchAPI](./assets/readme/pull-from-code.gif "Import APIs from Next.js or NestJS")
 
----
+## Why WatchAPI Exists
 
-## Why This Exists
-
--   Makes code as source of truth for API tests
+-   No need to manually write endpoints or reverse-engineer your APIs
 -   Reduces API drifts and context switching
 -   Closes the gap between actual code and tool for testing
 
----
-
-## What It Does
+## How WatchAPI Works
 
 -   Extracts API schemas as ready to use tests
 -   Removes the need to write tests manually
 -   Organizing APIs directly in the code editor
 
----
-
 ## Supported Environments
 
 -   **Next.js (App router), NestJS and tRPC** - main focus
 -   **Next.js (Pages router)** - less accurate
--   **Express, Fastify and Hono** - planned
 
 ![WatchAPI](./assets/readme/execute-request.gif "Execute and inspect API requests inside VS Code")
-
----
 
 ## Quick Start
 
@@ -70,8 +63,8 @@ Works locally by default. Sign in optional (enables team features).
 
 -   All collections stored on your machine by default
 -   No telemetry or usage tracking
--   Optional cloud sync (only when signed in)
 -   **Open source** under MIT license
+-   Optional cloud sync (only when signed in)
 
 Privacy Policy: [https://watchapi.dev/privacy](https://watchapi.dev/privacy)
 
