@@ -306,14 +306,14 @@ function setupEventListeners(
  * Check and log supported project types
  */
 async function checkProjectType(): Promise<void> {
-    const [hasNext, hasTrpc, hasNest] = await Promise.all([
+    const [_hasNextApp, _hasNextPages, hasTrpc, hasNest] = await Promise.all([
         hasNextApp(),
         hasNextPages(),
         hasTRPC(),
         hasNestJs(),
     ]);
 
-    const canUpload = hasNext || hasTrpc || hasNest;
+    const canUpload = _hasNextApp || _hasNextPages || hasTrpc || hasNest;
 
     await vscode.commands.executeCommand(
         "setContext",
@@ -323,7 +323,8 @@ async function checkProjectType(): Promise<void> {
 
     if (canUpload) {
         const types: string[] = [];
-        if (hasNext) types.push("Next.js");
+        if (_hasNextApp) types.push("Next.js (App router)");
+        if (_hasNextPages) types.push("Next.js (Pages router)");
         if (hasTrpc) types.push("tRPC");
         if (hasNest) types.push("NestJS");
 
