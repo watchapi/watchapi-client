@@ -9,6 +9,7 @@ import { hasNextApp, parseNextAppRoutes } from "./next-app/next-app-parser";
 import { hasNextPages, parseNextPagesRoutes } from "./next-pages/next-pages-parser";
 import { hasTRPC, parseTRPCRouters } from "./trpc/trpc-parser";
 import { hasNestJs, parseNestJsRoutes } from "./nestjs/nestjs-parser";
+import { hasPayloadCMS, parsePayloadCMSRoutes } from "./payload-cms/payload-cms-parser";
 
 /**
  * Detected project types
@@ -18,6 +19,7 @@ export interface DetectedProjectTypes {
   nextPages: boolean;
   trpc: boolean;
   nestjs: boolean;
+  payloadCMS: boolean;
 }
 
 /**
@@ -26,6 +28,14 @@ export interface DetectedProjectTypes {
 export interface DetectAndParseResult {
   detected: DetectedProjectTypes;
   routes: ParsedRoute[];
+  /** Debug info about routes found by each parser */
+  debug?: {
+    nextApp: number;
+    nextPages: number;
+    trpc: number;
+    nestjs: number;
+    payloadCMS: number;
+  };
 }
 
 /**
@@ -34,11 +44,12 @@ export interface DetectAndParseResult {
  * @returns Object indicating which frameworks are detected
  */
 export async function detectRoutes(rootDir: string): Promise<DetectedProjectTypes> {
-  const [nextApp, nextPages, trpc, nestjs] = await Promise.all([
+  const [nextApp, nextPages, trpc, nestjs, payloadCMS] = await Promise.all([
     hasNextApp(rootDir),
     hasNextPages(rootDir),
     hasTRPC(rootDir),
     hasNestJs(rootDir),
+    hasPayloadCMS(rootDir),
   ]);
 
   return {
@@ -46,6 +57,7 @@ export async function detectRoutes(rootDir: string): Promise<DetectedProjectType
     nextPages,
     trpc,
     nestjs,
+    payloadCMS,
   };
 }
 
@@ -55,7 +67,7 @@ export async function detectRoutes(rootDir: string): Promise<DetectedProjectType
  * @returns true if at least one framework is detected
  */
 export function hasAnyProjectType(detected: DetectedProjectTypes): boolean {
-  return detected.nextApp || detected.nextPages || detected.trpc || detected.nestjs;
+  return detected.nextApp || detected.nextPages || detected.trpc || detected.nestjs || detected.payloadCMS;
 }
 
 /**
@@ -69,11 +81,12 @@ export async function detectAndParseRoutes(rootDir: string): Promise<DetectAndPa
   const detected = await detectRoutes(rootDir);
 
   // Then parse routes only for detected frameworks
-  const [nextAppRoutes, nextPagesRoutes, trpcRoutes, nestRoutes] = await Promise.all([
+  const [nextAppRoutes, nextPagesRoutes, trpcRoutes, nestRoutes, payloadRoutes] = await Promise.all([
     detected.nextApp ? parseNextAppRoutes(rootDir) : Promise.resolve([]),
     detected.nextPages ? parseNextPagesRoutes(rootDir) : Promise.resolve([]),
     detected.trpc ? parseTRPCRouters(rootDir) : Promise.resolve([]),
     detected.nestjs ? parseNestJsRoutes(rootDir) : Promise.resolve([]),
+    detected.payloadCMS ? parsePayloadCMSRoutes(rootDir) : Promise.resolve([]),
   ]);
 
   const routes = [
@@ -81,10 +94,18 @@ export async function detectAndParseRoutes(rootDir: string): Promise<DetectAndPa
     ...nextPagesRoutes,
     ...trpcRoutes,
     ...nestRoutes,
+    ...payloadRoutes,
   ];
 
   return {
     detected,
     routes,
+    debug: {
+      nextApp: nextAppRoutes.length,
+      nextPages: nextPagesRoutes.length,
+      trpc: trpcRoutes.length,
+      nestjs: nestRoutes.length,
+      payloadCMS: payloadRoutes.length,
+    },
   };
 }
