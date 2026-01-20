@@ -37,7 +37,7 @@ export interface PayloadRouteHandler {
   method: HttpMethod;
   file: string;
   line: number;
-  source: "collection" | "global" | "endpoint";
+  source: "collection" | "global" | "endpoint" | "default";
   collectionSlug?: string;
   headers?: Record<string, string>;
   queryParams?: Record<string, string>;

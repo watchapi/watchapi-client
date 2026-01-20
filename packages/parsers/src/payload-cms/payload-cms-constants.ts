@@ -24,6 +24,7 @@ export const PAYLOAD_CONFIG_PATTERNS = [
 /**
  * Collection CRUD operations mapping
  * Maps operation type to HTTP method and path suffix
+ * Based on: https://payloadcms.com/docs/rest-api/overview
  */
 export const COLLECTION_OPERATIONS: Array<{
   name: string;
@@ -32,10 +33,13 @@ export const COLLECTION_OPERATIONS: Array<{
   hasBody: boolean;
 }> = [
   { name: "find", method: "GET", pathSuffix: "", hasBody: false },
-  { name: "create", method: "POST", pathSuffix: "", hasBody: true },
   { name: "findByID", method: "GET", pathSuffix: "/:id", hasBody: false },
-  { name: "update", method: "PATCH", pathSuffix: "/:id", hasBody: true },
-  { name: "delete", method: "DELETE", pathSuffix: "/:id", hasBody: false },
+  { name: "count", method: "GET", pathSuffix: "/count", hasBody: false },
+  { name: "create", method: "POST", pathSuffix: "", hasBody: true },
+  { name: "update", method: "PATCH", pathSuffix: "", hasBody: true },
+  { name: "updateByID", method: "PATCH", pathSuffix: "/:id", hasBody: true },
+  { name: "delete", method: "DELETE", pathSuffix: "", hasBody: false },
+  { name: "deleteByID", method: "DELETE", pathSuffix: "/:id", hasBody: false },
 ];
 
 /**
@@ -58,15 +62,58 @@ export const AUTH_COLLECTION_OPERATIONS: Array<{
 ];
 
 /**
- * Additional operations for upload collections
+ * Upload collections use standard CRUD operations with multipart/form-data
+ * The upload collection marker is used to set the correct Content-Type header
+ * No additional endpoints are added for upload collections
  */
 export const UPLOAD_COLLECTION_OPERATIONS: Array<{
   name: string;
   method: HttpMethod;
   pathSuffix: string;
   hasBody: boolean;
+}> = [];
+
+/**
+ * Default Payload CMS endpoints that exist on every installation
+ * These are independent of collections and globals
+ */
+export const DEFAULT_PAYLOAD_ENDPOINTS: Array<{
+  name: string;
+  method: HttpMethod;
+  path: string;
+  hasBody: boolean;
+  description: string;
 }> = [
-  { name: "uploadFile", method: "POST", pathSuffix: "/file", hasBody: true },
+  // Preferences endpoints
+  {
+    name: "getPreference",
+    method: "GET",
+    path: "/payload-preferences/:key",
+    hasBody: false,
+    description: "Get a user preference by key",
+  },
+  {
+    name: "createPreference",
+    method: "POST",
+    path: "/payload-preferences/:key",
+    hasBody: true,
+    description: "Create or update a user preference",
+  },
+  {
+    name: "deletePreference",
+    method: "DELETE",
+    path: "/payload-preferences/:key",
+    hasBody: false,
+    description: "Delete a user preference",
+  },
+  // Access endpoint
+  {
+    name: "access",
+    method: "GET",
+    path: "/access",
+    hasBody: false,
+    description: "Get access control information for current user",
+  },
 ];
 
 /**
