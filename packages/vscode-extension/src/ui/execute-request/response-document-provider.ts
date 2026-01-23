@@ -7,7 +7,6 @@ export class ResponseDocumentProvider
 {
     private readonly emitter = new vscode.EventEmitter<vscode.Uri>();
     private content = "";
-    private durationMs?: number;
 
     readonly onDidChange = this.emitter.event;
 
@@ -16,22 +15,18 @@ export class ResponseDocumentProvider
     }
 
     /**
-     * Update document content and optional duration
+     * Update document content
      */
-    update(content: string, durationMs?: number): void {
+    update(content: string): void {
         this.content = content;
-        this.durationMs = durationMs;
         this.emitter.fire(this.getUri());
     }
 
     /**
-     * Generate URI with dynamic tab name
+     * Generate URI for the response document
      */
     getUri(): vscode.Uri {
-        const durationPart =
-            this.durationMs !== undefined ? ` (${this.durationMs}ms)` : "";
-        const fileName = `Response${durationPart}.http`;
-        return vscode.Uri.parse(`${RESPONSE_DOCUMENT_SCHEME}:${fileName}`);
+        return vscode.Uri.parse(`${RESPONSE_DOCUMENT_SCHEME}:Response.http`);
     }
 }
 
