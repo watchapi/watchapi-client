@@ -78,6 +78,31 @@
             }
         },
         {
+            "comment": "@set directive for response variable extraction",
+            "captures": {
+                "1": {
+                    "name": "keyword.control.directive.http"
+                },
+                "2": {
+                    "name": "variable.other.readwrite.http"
+                },
+                "3": {
+                    "name": "keyword.operator.assignment.http"
+                },
+                "4": {
+                    "name": "keyword.other.http"
+                },
+                "5": {
+                    "name": "support.type.property-name.http"
+                },
+                "6": {
+                    "name": "variable.other.property.http"
+                }
+            },
+            "match": "^\\s*(@set)\\s+(\\w+)\\s*(=)\\s*(response\\.)?(headers|cookies|body)?(?:\\.)?(.*)$",
+            "name": "http.set-directive"
+        },
+        {
             "captures": {
                 "1": {
                     "name": "keyword.other.http"
