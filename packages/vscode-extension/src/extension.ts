@@ -56,7 +56,7 @@ export async function activate(
         ).LocalStorageService(context);
 
         const collectionsService = new CollectionsService();
-        const endpointsService = new EndpointsService();
+        const endpointsService = new EndpointsService(context);
 
         // Set up local storage for offline mode
         collectionsService.setLocalStorage(localStorage, () =>
